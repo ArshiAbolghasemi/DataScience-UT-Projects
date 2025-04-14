@@ -1,0 +1,96 @@
+services:
+
+  kafka:
+    image: apache/kafka:latest
+    hostname: kafka
+    container_name: ut-ds-ca2-kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:9093,EXTERNAL://0.0.0.0:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    volumes:
+      - kafka_data:/opt/kafka/data
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: ut-ds-ca2-kafdrop
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+      JVM_OPTS: "-Xms32M -Xmx64M"
+    depends_on:
+      - kafka
+
+  mongodb:
+    image: mongo:latest
+    container_name: ut-ds-ca2-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb_data:/data/db
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      - kafka
+      - mongodb
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana/dashboards:/etc/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  darooghe-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: darooghe-app
+    volumes:
+      - .:/app
+    depends_on:
+      - kafka
+      - mongodb
+    ports:
+      - "4040:4040"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      MONGO_URI: mongodb://root:example@mongodb:27017/
+      SPARK_MASTER: local[*]
+
+volumes:
+  kafka_data:
+  mongodb_data:
+  prometheus_data:
+  grafana_data:
