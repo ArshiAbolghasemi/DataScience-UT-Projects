@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
-from entitiy import device, location
+from darooghe.domain.entity.device import Device
+from darooghe.domain.entity.location import Location
 from enum import Enum
 
 
@@ -62,8 +63,8 @@ class Transaction:
     merchant_category: MerchantCategory
     payment_method: PaymentMethod
     amount: int
-    location: location.Location
-    device_info: Optional[device.Device]
+    location: Location
+    device_info: Optional[Device]
     status: str
     commission_type: CommissionType
     commission_amount: int
