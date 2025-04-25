@@ -38,6 +38,21 @@ class FailureReason(str, Enum):
     FRAUD_PREVENTED = "fraud_prevented"
 
 
+class Status(str, Enum):
+    DECLINED = "declined"
+    APPROVED = "approved"
+
+
+class RiskLevel(str, Enum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+    CRITICAL = 5
+
+
+COMMISSION_RATIO = 0.02
+VAT_RATIO = 0.09
+
 @dataclass
 class Transaction:
     transaction_id: str
@@ -55,5 +70,5 @@ class Transaction:
     vat_amount: int
     total_amount: int
     customer_type: CustomerType
-    risk_level: int
+    risk_level: RiskLevel
     failure_reason: Optional[FailureReason]
