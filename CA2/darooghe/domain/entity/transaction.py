@@ -54,6 +54,7 @@ class RiskLevel(str, Enum):
 COMMISSION_RATIO = 0.02
 VAT_RATIO = 0.09
 
+
 @dataclass
 class Transaction:
     transaction_id: str
