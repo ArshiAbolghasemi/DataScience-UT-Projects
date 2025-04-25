@@ -1,6 +1,7 @@
 import os
 import uuid
 import random
+
 from datetime import UTC, datetime
 from faker import Faker
 from domain.entity.location import Location
