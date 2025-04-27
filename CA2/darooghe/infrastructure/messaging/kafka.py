@@ -1,4 +1,3 @@
-from os import close, error
 import time
 import logging
 
