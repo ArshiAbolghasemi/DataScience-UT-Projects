@@ -94,7 +94,6 @@ class KafkaService:
                     )
                     break
 
-                # Poll for messages
                 msg = consumer.poll(1.0)
 
                 if msg is None:
