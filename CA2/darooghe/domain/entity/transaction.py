@@ -1,8 +1,11 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 from darooghe.domain.entity.device import Device
 from darooghe.domain.entity.location import Location
 from enum import Enum
+
+from darooghe.domain.util.serialization import serializable
 
 
 class MerchantCategory(str, Enum):
@@ -51,14 +54,11 @@ class RiskLevel(str, Enum):
     CRITICAL = 5
 
 
-COMMISSION_RATIO = 0.02
-VAT_RATIO = 0.09
-
-
 @dataclass
+@serializable
 class Transaction:
     transaction_id: str
-    timestamp: str
+    timestamp: datetime
     customer_id: str
     merchant_id: str
     merchant_category: MerchantCategory
