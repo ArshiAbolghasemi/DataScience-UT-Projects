@@ -111,6 +111,7 @@ class TransactionProducer:
                 callback=self.__delivery_report,
             )
 
-if  __name__ == "__main__":
+
+if __name__ == "__main__":
     transaction_producer = TransactionProducer()
     transaction_producer.produce_stream()
