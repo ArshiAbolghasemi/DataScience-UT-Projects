@@ -1,6 +1,6 @@
 import random
 from datetime import datetime, UTC
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 import uuid
 from faker import Faker
 
@@ -63,7 +63,9 @@ class TransactionFactory:
             customer_type=customer_type,
         )
 
-    def create_historical_transactions(self, count=20000, days_back=7):
+    def create_historical_transactions(
+        self, count=20000, days_back=7
+    ) -> List[transaction.Transaction]:
         transactions = []
 
         for _ in range(count):
@@ -75,9 +77,6 @@ class TransactionFactory:
             transactions.append(transaction)
 
         return transactions
-
-    def create_transactions_batch(self, count=100):
-        return [self.create_transaction() for _ in range(count)]
 
     def __random_location(self) -> Location:
         return Location(
