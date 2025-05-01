@@ -18,7 +18,6 @@ def serializable(cls: Type[T]) -> Type[T]:
         return result
 
     def __convert_value(value: Any) -> Any:
-        """Recursive value conversion"""
         if __has_serializable(value):
             return value.to_dict()
         elif isinstance(value, Enum):
