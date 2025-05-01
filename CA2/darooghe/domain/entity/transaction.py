@@ -5,7 +5,7 @@ from darooghe.domain.entity.device import Device
 from darooghe.domain.entity.location import Location
 from enum import Enum
 
-from darooghe.domain.util.serialization import serializable
+from darooghe.domain.util.serialization import Serializer, serializable
 
 
 class MerchantCategory(str, Enum):
@@ -56,7 +56,7 @@ class RiskLevel(str, Enum):
 
 @dataclass
 @serializable
-class Transaction:
+class Transaction(Serializer):
     transaction_id: str
     timestamp: datetime
     customer_id: str

@@ -1,10 +1,13 @@
 from dataclasses import is_dataclass, fields
 from datetime import datetime, date
 from enum import Enum
-from typing import Any, Dict, TypeVar, Type
+from typing import Any, Dict, TypeVar, Type, Protocol
 
 T = TypeVar("T")
 
+class Serializer(Protocol):
+    def to_dict(self) -> dict:
+        ...
 
 def serializable(cls: Type[T]) -> Type[T]:
     if not is_dataclass(cls):
