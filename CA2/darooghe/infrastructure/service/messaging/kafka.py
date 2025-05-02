@@ -59,8 +59,8 @@ class KafkaService:
         return Producer(producer_conf)
 
     def is_topic_existed(self, topic) -> bool:
-        list_topics = self.__admin_clinet.list_topics(timeout=5)
-        return topic in list_topics
+        metadata = self.__admin_clinet.list_topics(timeout=5)
+        return topic in metadata.topics
 
     def flush_topic(
         self,
