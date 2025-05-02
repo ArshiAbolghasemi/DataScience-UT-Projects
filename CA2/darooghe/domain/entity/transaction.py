@@ -56,7 +56,7 @@ class RiskLevel(str, Enum):
 
 @dataclass
 @serializable
-class Transaction(Serializer):
+class Transaction:
     transaction_id: str
     timestamp: datetime
     customer_id: str

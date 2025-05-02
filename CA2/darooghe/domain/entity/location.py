@@ -6,6 +6,6 @@ from darooghe.domain.util.serialization import Serializer, serializable
 
 @dataclass
 @serializable
-class Location(Serializer):
+class Location:
     lat: Decimal
     lng: Decimal

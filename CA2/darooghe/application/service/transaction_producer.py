@@ -4,11 +4,12 @@ import os
 import random
 from datetime import datetime, UTC
 import time
-from typing import Optional
+from typing import Optional, cast
 
 from confluent_kafka import KafkaError, Message
 
 from darooghe.domain.factory.transaction_factory import TransactionFactory
+from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.service.messaging.kafka import KafkaService
 from darooghe.infrastructure.service.messaging.kafka_config import (
     KafkaGroups,
@@ -96,7 +97,7 @@ class TransactionProducer:
         for tx in historical_transactions:
             self.__kafka_service.produce_message(
                 topic_name=KafkaTopics.DAROOGHE_TRANSACTIONS,
-                message=json.dumps(tx.to_dict()),
+                message=json.dumps(cast(Serializer, tx).to_dict()),
                 key=tx.customer_id,
                 callback=self.__delivery_report,
             )
@@ -106,7 +107,7 @@ class TransactionProducer:
             transaction = self.__transaction_factory.create_transaction()
             self.__kafka_service.produce_message(
                 topic_name=KafkaTopics.DAROOGHE_TRANSACTIONS,
-                message=json.dumps(transaction.to_dict()),
+                message=json.dumps(cast(Serializer, transaction).to_dict()),
                 key=transaction.customer_id,
                 callback=self.__delivery_report,
             )

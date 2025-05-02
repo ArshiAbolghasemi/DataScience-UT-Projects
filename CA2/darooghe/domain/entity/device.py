@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from darooghe.domain.util.serialization import Serializer, serializable
+from darooghe.domain.util.serialization import serializable
 
 
 @dataclass
 @serializable
-class Device(Serializer):
+class Device:
     os: str
     app_version: str
     device_model: str
