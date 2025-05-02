@@ -6,7 +6,7 @@ from faker import Faker
 
 from darooghe.domain.entity import transaction
 from darooghe.domain.entity.location import Location
-from darooghe.domain.entity.device import Device
+from darooghe.domain.entity.device import OS, Device
 
 
 class TransactionFactory:
@@ -88,11 +88,13 @@ class TransactionFactory:
         return random.choice(
             [
                 Device(
-                    os="Android", app_version="2.4.1", device_model="Samsung Galaxy S25"
+                    os=OS.ANDROID,
+                    app_version="2.4.1",
+                    device_model="Samsung Galaxy S25",
                 ),
-                Device(os="IOS", app_version="3.1.0", device_model="iPhone15"),
+                Device(os=OS.IOS, app_version="3.1.0", device_model="iPhone15"),
                 Device(
-                    os="Android", app_version="1.9.5", device_model="Google Pixel 6"
+                    os=OS.ANDROID, app_version="1.9.5", device_model="Google Pixel 6"
                 ),
             ]
         )
