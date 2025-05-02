@@ -18,7 +18,7 @@ class TransactionFactory:
         timestamp = kwargs.get("timestamp", datetime.now(UTC))
         transaction_id = kwargs.get("transaction_id", str(uuid.uuid4()))
         customer_id = kwargs.get(
-            "customer_id", f"cust_{random.randint(1, self.__config["costomer_count"])}"
+            "customer_id", f"cust_{random.randint(1, self.__config["customer_count"])}"
         )
         merchant_id = kwargs.get(
             "merchant_id", f"merhc_{random.randint(1, self.__config["merchant_count"])}"
