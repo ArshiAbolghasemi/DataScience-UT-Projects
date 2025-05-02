@@ -164,7 +164,7 @@ class KafkaService:
         topic_name: str,
         message: Union[str, bytes],
         key: Optional[Union[str, bytes]] = None,
-        callback: Optional[Callable[[Optional[KafkaException], Any], None]] = None,
+        callback: Optional[Callable[[Optional[KafkaError], Any], None]] = None,
     ) -> None:
         producer = self.__get_producer(message_timeout_ms=5000)
 
