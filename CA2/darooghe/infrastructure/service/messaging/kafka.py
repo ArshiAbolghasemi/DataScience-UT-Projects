@@ -1,28 +1,25 @@
-import time
 import logging
 
 from confluent_kafka import (
     Producer,
-    Consumer,
     KafkaException,
     KafkaError,
 )
-from typing import Any, List, Optional, Callable, Tuple, Union
+from typing import Any, List, Optional, Callable, Union
 
 from confluent_kafka.admin import AdminClient
 
 
 class KafkaService:
-    def __init__(self, bootstrap_servers: List[str], group_id: str):
+    def __init__(self, bootstrap_servers: List[str]):
         self.bootstrap_servers = bootstrap_servers
-        self.__group_id: str = group_id
 
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
         )
         self.__logger: logging.Logger = logging.getLogger(__name__)
         self.__admin_clinet: AdminClient = AdminClient(
-            {"bootstrap.servers": self.bootstrap_servers}
+            {"bootstrap.servers": self.bootstrap_servers, "request.timeout.ms": 5000}
         )
 
     @property
@@ -33,21 +30,6 @@ class KafkaService:
     def bootstrap_servers(self, value: List[str]):
         cleaned_servers = [str(s).strip() for s in value if str(s).strip()]
         self.__bootstrap_servers = ",".join(cleaned_servers)
-
-    def __get_cosumer(self, **kwargs) -> Consumer:
-        group_id = kwargs.get("group_id", None)
-        if group_id is None:
-            raise ValueError("group_id is missed")
-        consumer_conf = {
-            "bootstrap.servers": self.bootstrap_servers,
-            "group.id": group_id,
-            "auto.offset.reset": kwargs.get("auto_offset_rest", "earliest"),
-            "enable.auto.commit": kwargs.get("enable_auto_commit", False),
-        }
-        auto_commit_interval_ms = kwargs.get("auto_commit_interval_ms", None)
-        if not auto_commit_interval_ms is None:
-            consumer_conf["auto.commit.interval.ms"] = auto_commit_interval_ms
-        return Consumer(consumer_conf)
 
     def __get_producer(self, **kwargs) -> Producer:
         producer_conf = {
@@ -62,78 +44,32 @@ class KafkaService:
         metadata = self.__admin_clinet.list_topics(timeout=5)
         return topic in metadata.topics
 
-    def flush_topic(
-        self,
-        topic: str,
-        timeout: Optional[float] = 30.0,
-        max_empty_polls: int = 5,
-        message_callback: Optional[Callable] = None,
-    ) -> Tuple[bool, int]:
+    def delete_topic(
+        self, topic: str, timeout: float = 30.0, operation_timeout: float = 10.0
+    ) -> bool:
         if not isinstance(topic, str) or not topic.strip():
             raise ValueError("Topic name must be a non-empty string")
 
-        if timeout is not None and (
-            not isinstance(timeout, (int, float)) or timeout <= 0
-        ):
-            raise ValueError("Timeout must be positive number or None")
-
-        if not isinstance(max_empty_polls, int) or max_empty_polls <= 0:
-            raise ValueError("max_empty_polls must be positive integer")
-
-        start_time = time.time()
-        message_count = 0
-        empty_polls = 0
-        consumer = None
+        if not isinstance(timeout, (int, float)) or timeout <= 0:
+            raise ValueError("Timeout must be positive number")
+        print(int(operation_timeout * 1000))
         try:
-            consumer = self.__get_cosumer(
-                group_id=f"{self.__group_id}-flush-{time.time()}",
-                auto_commit_interval_ms=100,
+            fs = self.__admin_clinet.delete_topics(
+                [topic], operation_timeout=int(operation_timeout * 1000)
             )
-            consumer.subscribe([topic])
+            fs[topic].result(timeout=timeout)
+            self.__logger.info(f"Successfully deleted topic: {topic}")
+            return True
 
-            while True:
-                if timeout and (time.time() - start_time > timeout):
-                    self.__logger.warning(f"Flush timeout reached for {topic}")
-                    break
-
-                if empty_polls >= max_empty_polls:
-                    self.__logger.info(
-                        f"Stopping flush after {max_empty_polls} empty polls"
-                    )
-                    break
-
-                msg = consumer.poll(1.0)
-
-                if msg is None:
-                    empty_polls += 1
-                    continue
-
-                if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF:
-                        continue
-                    self.__logger.error(f"Consumer error: {msg.error()}")
-                    return (False, message_count)
-
-                empty_polls = 0
-                message_count += 1
-
-                if message_callback:
-                    try:
-                        message_callback(msg)
-                    except Exception as e:
-                        self.__logger.error(f"Callback error: {e}")
-
-            return (True, message_count)
-
+        except KafkaException as e:
+            if e.args[0].code() == "UNKNOWN_TOPIC_OR_PART":
+                self.__logger.info(f"Topic {topic} does not exist")
+                return True
+            self.__logger.error(f"Failed to delete topic {topic}: {e}")
+            return False
         except Exception as e:
-            self.__logger.error(f"Flush failed: {e}")
-            return (False, message_count)
-        finally:
-            if consumer is not None:
-                try:
-                    consumer.close()
-                except Exception as close_error:
-                    self.__logger.error(f"Error closing consumer: {close_error}")
+            self.__logger.error(f"Unexpected error deleting topic {topic}: {e}")
+            return False
 
     def produce_message(
         self,

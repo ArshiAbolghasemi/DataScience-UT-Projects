@@ -12,7 +12,6 @@ from darooghe.domain.factory.transaction_factory import TransactionFactory
 from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.service.messaging.kafka import KafkaService
 from darooghe.infrastructure.service.messaging.kafka_config import (
-    KafkaGroups,
     KafkaTopics,
 )
 
@@ -24,7 +23,6 @@ class TransactionProducer:
         kafka_broker = os.getenv("KAFKA_BROKER", "localhost:9092")
         self.__kafka_service = KafkaService(
             bootstrap_servers=[kafka_broker],
-            group_id=KafkaGroups.DAROOGHE_TRANSACTIONS_PRODUCER,
         )
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
@@ -93,15 +91,16 @@ class TransactionProducer:
         if self.__kafka_service.is_topic_existed(
             topic=KafkaTopics.DAROOGHE_TRANSACTIONS
         ):
-            self.__kafka_service.flush_topic(topic=KafkaTopics.DAROOGHE_TRANSACTIONS)
+            self.__kafka_service.delete_topic(topic=KafkaTopics.DAROOGHE_TRANSACTIONS)
+
         historical_transactions = (
             self.__transaction_factory.create_historical_transactions()
         )
-        for tx in historical_transactions:
+        for transaction in historical_transactions:
             self.__kafka_service.produce_message(
                 topic_name=KafkaTopics.DAROOGHE_TRANSACTIONS,
-                message=json.dumps(cast(Serializer, tx).to_dict()),
-                key=tx.customer_id,
+                message=json.dumps(cast(Serializer, transaction).to_dict()),
+                key=transaction.customer_id,
                 callback=self.__delivery_report,
             )
 
