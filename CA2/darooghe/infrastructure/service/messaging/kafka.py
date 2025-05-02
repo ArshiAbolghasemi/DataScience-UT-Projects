@@ -45,17 +45,17 @@ class KafkaService:
         return topic in metadata.topics
 
     def delete_topic(
-        self, topic: str, timeout: float = 30.0, operation_timeout: float = 10.0
+        self, topic: str, timeout: float = 30.0, operation_timeout: float = 30.0
     ) -> bool:
         if not isinstance(topic, str) or not topic.strip():
             raise ValueError("Topic name must be a non-empty string")
 
         if not isinstance(timeout, (int, float)) or timeout <= 0:
             raise ValueError("Timeout must be positive number")
-        print(int(operation_timeout * 1000))
+
         try:
             fs = self.__admin_clinet.delete_topics(
-                [topic], operation_timeout=int(operation_timeout * 1000)
+                [topic], operation_timeout=operation_timeout
             )
             fs[topic].result(timeout=timeout)
             self.__logger.info(f"Successfully deleted topic: {topic}")
