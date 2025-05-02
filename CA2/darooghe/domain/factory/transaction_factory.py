@@ -40,7 +40,7 @@ class TransactionFactory:
         commission_type = random.choice(list(transaction.CommissionType))
         commission_amount = int(amount * self.__config["commission_ratio"])
         vat_amount = int(amount * self.__config["vat_ratio"])
-        total_amount = amount + vat_amount
+        total_amount = amount + vat_amount + commission_amount
         customer_type = random.choice(list(transaction.CustomerType))
 
         return transaction.Transaction(
