@@ -55,8 +55,8 @@ class RiskLevel(str, Enum):
     CRITICAL = 5
 
 
-@dataclass
 @serializable
+@dataclass
 class Transaction:
     transaction_id: str
     timestamp: datetime

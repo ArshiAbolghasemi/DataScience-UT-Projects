@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from darooghe.domain.util.serialization import serializable
 
 
-@dataclass
 @serializable
+@dataclass
 class Device:
     os: str
     app_version: str

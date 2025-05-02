@@ -4,8 +4,8 @@ from decimal import Decimal
 from darooghe.domain.util.serialization import serializable
 
 
-@dataclass
 @serializable
+@dataclass
 class Location:
     lat: Decimal
     lng: Decimal
