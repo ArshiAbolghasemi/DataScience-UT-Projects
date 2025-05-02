@@ -127,38 +127,6 @@ class KafkaService:
                 except Exception as close_error:
                     self.__logger.error(f"Error closing consumer: {close_error}")
 
-    def topic_has_messages(self, topic: str) -> bool:
-        self.__logger.info(f"Checking if topic {topic} has messages")
-
-        consumer = None
-        try:
-            consumer = self.__get_cosumer(
-                group_id=f"{self.__group_id}-metadata-checker-{time.time()}"
-            )
-
-            cluster_metadata = consumer.list_topics(topic)
-            if topic not in cluster_metadata.topics:
-                return False
-
-            partitions = cluster_metadata.topics[topic].partitions
-            if not partitions:
-                return False
-
-            for partition_id in partitions:
-                tp = TopicPartition(topic, partition_id)
-                low, high = consumer.get_watermark_offsets(tp)
-                if high > low:
-                    return True
-
-            return False
-
-        except Exception as e:
-            self.__logger.error(f"Error checking topic: {e}")
-            return False
-        finally:
-            if consumer is not None:
-                consumer.close()
-
     def produce_message(
         self,
         topic_name: str,
