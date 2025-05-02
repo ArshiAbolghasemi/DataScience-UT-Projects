@@ -9,6 +9,8 @@ from confluent_kafka import (
 )
 from typing import Any, List, Optional, Callable, Tuple, Union
 
+from confluent_kafka.admin import AdminClient
+
 
 class KafkaService:
     def __init__(self, bootstrap_servers: List[str], group_id: str):
@@ -19,6 +21,9 @@ class KafkaService:
             level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
         )
         self.__logger: logging.Logger = logging.getLogger(__name__)
+        self.__admin_clinet: AdminClient = AdminClient(
+            {"bootstrap.servers": self.bootstrap_servers}
+        )
 
     @property
     def bootstrap_servers(self) -> str:
@@ -52,6 +57,10 @@ class KafkaService:
         if not message_timeout_ms is None:
             producer_conf["message.timeout.ms"] = message_timeout_ms
         return Producer(producer_conf)
+
+    def is_topic_existed(self, topic) -> bool:
+        list_topics = self.__admin_clinet.list_topics(timeout=5)
+        return topic in list_topics
 
     def flush_topic(
         self,
