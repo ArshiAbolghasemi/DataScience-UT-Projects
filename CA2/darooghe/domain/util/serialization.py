@@ -22,7 +22,9 @@ def serializable(cls: Type[T]) -> Type[T]:
         return result
 
     def __convert_value(value: Any) -> Any:
-        if __has_serializable(value):
+        if value is None:
+            return None
+        elif __has_serializable(value):
             return value.to_dict()
         elif isinstance(value, Enum):
             return value.value
@@ -32,7 +34,8 @@ def serializable(cls: Type[T]) -> Type[T]:
             return [__convert_value(item) for item in value]
         elif isinstance(value, dict):
             return {k: __convert_value(v) for k, v in value.items()}
-        return None
+        else:
+            return str(value)
 
     def __has_serializable(obj: object) -> bool:
         return is_dataclass(obj) and hasattr(obj, "to_dict")
