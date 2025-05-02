@@ -4,9 +4,9 @@ from typing import List, Optional, Tuple
 import uuid
 from faker import Faker
 
-from domain.entity import transaction
-from domain.entity.location import Location
-from domain.entity.device import Device
+from darooghe.domain.entity import transaction
+from darooghe.domain.entity.location import Location
+from darooghe.domain.entity.device import Device
 
 
 class TransactionFactory:
