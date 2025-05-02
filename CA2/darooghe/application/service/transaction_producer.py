@@ -12,6 +12,7 @@ from darooghe.domain.factory.transaction_factory import TransactionFactory
 from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.service.messaging.kafka import KafkaService
 from darooghe.infrastructure.service.messaging.kafka_config import (
+    LOCAL_KAFKA_BROKER,
     KafkaTopics,
 )
 
@@ -20,7 +21,7 @@ class TransactionProducer:
     def __init__(self):
         self.__config = self.__load_config()
         self.__transaction_factory = TransactionFactory(self.__config)
-        kafka_broker = os.getenv("KAFKA_BROKER", "localhost:9092")
+        kafka_broker = os.getenv("KAFKA_BROKER", LOCAL_KAFKA_BROKER)
         self.__kafka_service = KafkaService(
             bootstrap_servers=[kafka_broker],
         )
