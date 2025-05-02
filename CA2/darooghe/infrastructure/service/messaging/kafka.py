@@ -41,7 +41,7 @@ class KafkaService:
         }
         auto_commit_interval_ms = kwargs.get("auto_commit_interval_ms", None)
         if not auto_commit_interval_ms is None:
-            consumer_conf["auto_commit_interval_ms"] = auto_commit_interval_ms
+            consumer_conf["auto.commit.interval.ms"] = auto_commit_interval_ms
         return Consumer(consumer_conf)
 
     def __get_producer(self, **kwargs) -> Producer:
