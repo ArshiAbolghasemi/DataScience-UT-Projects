@@ -90,7 +90,10 @@ class TransactionProducer:
             )
 
     def produce_stream(self) -> None:
-        self.__kafka_service.flush_topic(topic=KafkaTopics.DAROOGHE_TRANSACTIONS)
+        if self.__kafka_service.is_topic_existed(
+            topic=KafkaTopics.DAROOGHE_TRANSACTIONS
+        ):
+            self.__kafka_service.flush_topic(topic=KafkaTopics.DAROOGHE_TRANSACTIONS)
         historical_transactions = (
             self.__transaction_factory.create_historical_transactions()
         )
