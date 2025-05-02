@@ -21,7 +21,7 @@ class TransactionProducer:
     def __init__(self):
         self.__config = self.__load_config()
         self.__transaction_factory = TransactionFactory(self.__config)
-        kafka_broker = os.getenv("KAFKA_BROKER", "kafka:9092")
+        kafka_broker = os.getenv("KAFKA_BROKER", "localhost:9092")
         self.__kafka_service = KafkaService(
             bootstrap_servers=[kafka_broker],
             group_id=KafkaGroups.DAROOGHE_TRANSACTIONS_PRODUCER,
