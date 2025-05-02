@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
-from darooghe.domain.entity.device import Device
-from darooghe.domain.entity.location import Location
 from enum import Enum
 
-from darooghe.domain.util.serialization import Serializer, serializable
+from darooghe.domain.entity.device import Device
+from darooghe.domain.entity.location import Location
+
+from darooghe.domain.util.serialization import serializable
 
 
 class MerchantCategory(str, Enum):

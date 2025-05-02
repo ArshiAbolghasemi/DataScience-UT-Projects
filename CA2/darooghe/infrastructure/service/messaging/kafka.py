@@ -6,7 +6,6 @@ from confluent_kafka import (
     Consumer,
     KafkaException,
     KafkaError,
-    TopicPartition,
 )
 from typing import Any, List, Optional, Callable, Tuple, Union
 
