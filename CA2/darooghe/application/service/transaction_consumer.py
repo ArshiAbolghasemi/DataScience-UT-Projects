@@ -64,8 +64,8 @@ class TransactionConsumer:
             )
         try:
             if msg_value is None:
-
                 return False
+
             transaction = cast(
                 Transaction, cast(Serializer, Transaction).from_dict(msg_value)
             )
@@ -83,7 +83,7 @@ class TransactionConsumer:
                 message=json.dumps(cast(Serializer, error_data).to_dict()),
                 key=f"kafka-transaction-consumer-validations-{datetime.now(UTC).isoformat()}",
             )
-            return True
+            return False
         except Exception as e:
             error = TransactionErrorLog.create_error(
                 transaction_id=(
