@@ -171,10 +171,12 @@ class KafkaService:
 
                     try:
                         if error:
+                            self.__logger.error("Message error: {error}")
                             result = callback(None, error)
                         else:
                             message_value = json.loads(msg.value().decode("utf-8"))
                             result = callback(message_value, None)
+                            consumer.commit(message=msg, asynchronous=False)
 
                         results.append(result)
                         message_count += 1
