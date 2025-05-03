@@ -16,6 +16,7 @@ class CollectionSetup:
     def setup_collections(self):
         logging.info(f"Start to setup collections for db: {self.client.db}")
         self.setup_transaction_collection()
+        self.setup_daily_transaction_temproral_patterns()
         logging.info("All collections setup completed")
 
     def __setup_collection(
@@ -35,6 +36,20 @@ class CollectionSetup:
         ]
         self.__setup_collection(
             collection_name=Mongo.Collections.TRANSACTION, indexes=indexes
+        )
+
+    def __index_created_at_ttl(self):
+        return IndexModel(
+            [("created_at", ASCENDING)],
+            expireAfterSeconds=Mongo.Config.MONGO_DB_TRANSACTION_DATA_TTL,
+            name="created_at_ttl_idx",
+        )
+
+    def setup_daily_transaction_temproral_patterns(self):
+        indexes = [self.__index_created_at_ttl()]
+        self.__setup_collection(
+            collection_name=Mongo.Collections.DAILY_TRANSACTION_TEMPORAL_PATTERNS,
+            indexes=indexes,
         )
 
 
