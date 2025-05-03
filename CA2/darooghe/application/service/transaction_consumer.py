@@ -11,16 +11,14 @@ from darooghe.domain.entity.transaction import Transaction
 from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.messaging.kafka import KafkaErrorLog, KafkaService
 from darooghe.infrastructure.messaging.kafka_config import (
-    LOCAL_KAFKA_BROKER,
-    KafkaGroups,
-    KafkaTopics,
+    Kafka,
 )
 
 
 class TransactionConsumer:
 
     def __init__(self) -> None:
-        kafka_broker = os.getenv("KAFKA_BROKER", LOCAL_KAFKA_BROKER)
+        kafka_broker = Kafka.Config.KAFKA_BROKER
         self.__kafka_service = KafkaService([kafka_broker])
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
@@ -29,8 +27,8 @@ class TransactionConsumer:
     def execute(self, batch_size: int = 100):
         while True:
             results = self.__kafka_service.consume(
-                topic=KafkaTopics.DAROOGHE_TRANSACTIONS,
-                group_id=KafkaGroups.DAROOGHE_TRANSACTIONS_CONSUMER,
+                topic=Kafka.Topics.DAROOGHE_TRANSACTIONS,
+                group_id=Kafka.Groups.DAROOGHE_TRANSACTIONS_CONSUMER,
                 callback=self.__process_transaction,
                 batch_size=batch_size,
                 max_messages=int(os.getenv("TRANSACTION_CONSUMER_MAX_MSG", 10000)),
@@ -48,7 +46,7 @@ class TransactionConsumer:
     ):
         if err:
             self.__kafka_service.produce_message(
-                topic_name=KafkaTopics.DAROOGHE_ERROR_LOGS,
+                topic_name=Kafka.Topics.DAROOGHE_ERROR_LOGS,
                 message=json.dumps(
                     cast(Serializer, KafkaErrorLog.create_error(err)).to_dict()
                 ),
@@ -58,7 +56,7 @@ class TransactionConsumer:
 
         if msg_value is None:
             self.__kafka_service.produce_message(
-                topic_name=KafkaTopics.DAROOGHE_ERROR_LOGS,
+                topic_name=Kafka.Topics.DAROOGHE_ERROR_LOGS,
                 message=json.dumps("msg_value is empty"),
                 key=f"kafka-transaction-consumer-{datetime.now(UTC).isoformat()}",
             )
@@ -79,7 +77,7 @@ class TransactionConsumer:
                 msg_value=msg_value,
             )
             self.__kafka_service.produce_message(
-                topic_name=KafkaTopics.DAROOGHE_ERROR_LOGS,
+                topic_name=Kafka.Topics.DAROOGHE_ERROR_LOGS,
                 message=json.dumps(cast(Serializer, error_data).to_dict()),
                 key=f"kafka-transaction-consumer-validations-{datetime.now(UTC).isoformat()}",
             )
@@ -93,7 +91,7 @@ class TransactionConsumer:
                 msg_value=msg_value,
             )
             self.__kafka_service.produce_message(
-                topic_name=KafkaTopics.DAROOGHE_ERROR_LOGS,
+                topic_name=Kafka.Topics.DAROOGHE_ERROR_LOGS,
                 message=json.dumps(cast(Serializer, error).to_dict()),
                 key=f"kafka-transaction-consumer-{datetime.now(UTC).isoformat()}",
             )

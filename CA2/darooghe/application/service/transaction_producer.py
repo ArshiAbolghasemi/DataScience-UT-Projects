@@ -12,8 +12,7 @@ from darooghe.domain.factory.transaction_factory import TransactionFactory
 from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.messaging.kafka import KafkaService
 from darooghe.infrastructure.messaging.kafka_config import (
-    LOCAL_KAFKA_BROKER,
-    KafkaTopics,
+    Kafka,
 )
 
 
@@ -21,7 +20,7 @@ class TransactionProducer:
     def __init__(self):
         self.__config = self.__load_config()
         self.__transaction_factory = TransactionFactory()
-        kafka_broker = os.getenv("KAFKA_BROKER", LOCAL_KAFKA_BROKER)
+        kafka_broker = Kafka.Config.KAFKA_BROKER
         self.__kafka_service = KafkaService(
             bootstrap_servers=[kafka_broker],
         )
@@ -74,16 +73,16 @@ class TransactionProducer:
 
     def produce_stream(self) -> None:
         if self.__kafka_service.is_topic_existed(
-            topic=KafkaTopics.DAROOGHE_TRANSACTIONS
+            topic=Kafka.Topics.DAROOGHE_TRANSACTIONS
         ):
-            self.__kafka_service.delete_topic(topic=KafkaTopics.DAROOGHE_TRANSACTIONS)
+            self.__kafka_service.delete_topic(topic=Kafka.Topics.DAROOGHE_TRANSACTIONS)
 
         historical_transactions = (
             self.__transaction_factory.create_historical_transactions()
         )
         for transaction in historical_transactions:
             self.__kafka_service.produce_message(
-                topic_name=KafkaTopics.DAROOGHE_TRANSACTIONS,
+                topic_name=Kafka.Topics.DAROOGHE_TRANSACTIONS,
                 message=json.dumps(cast(Serializer, transaction).to_dict()),
                 key=transaction.customer_id,
                 callback=self.__delivery_report,
@@ -93,7 +92,7 @@ class TransactionProducer:
             time.sleep(self.__nhpp_rate())
             transaction = self.__transaction_factory.create_transaction()
             self.__kafka_service.produce_message(
-                topic_name=KafkaTopics.DAROOGHE_TRANSACTIONS,
+                topic_name=Kafka.Topics.DAROOGHE_TRANSACTIONS,
                 message=json.dumps(cast(Serializer, transaction).to_dict()),
                 key=transaction.customer_id,
                 callback=self.__delivery_report,
