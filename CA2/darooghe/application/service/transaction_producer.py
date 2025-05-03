@@ -120,5 +120,5 @@ if __name__ == "__main__":
     try:
         transaction_producer = TransactionProducer()
         transaction_producer.produce_stream()
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         logging.info("Received keyboard interrupt, stopping transaction producer")

@@ -104,5 +104,5 @@ if __name__ == "__main__":
     try:
         transaction_consumer = TransactionConsumer()
         transaction_consumer.execute()
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         logging.info("Received keyboard interrupt, stopping transaction consumer")

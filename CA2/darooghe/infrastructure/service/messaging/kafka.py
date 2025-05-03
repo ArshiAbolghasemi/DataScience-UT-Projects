@@ -55,7 +55,7 @@ class KafkaService:
             "bootstrap.servers": self.bootstrap_servers,
         }
         message_timeout_ms = kwargs.get("message_timeout_ms", None)
-        if not message_timeout_ms is None:
+        if message_timeout_ms is not None:
             producer_conf["message.timeout.ms"] = message_timeout_ms
         return Producer(producer_conf)
 
