@@ -1,3 +1,4 @@
+import os
 import random
 import uuid
 from datetime import UTC, datetime
@@ -11,9 +12,29 @@ from darooghe.domain.entity.location import Location
 
 
 class TransactionFactory:
-    def __init__(self, config: dict):
+    def __init__(self):
         self.__faker = Faker()
-        self.__config = config
+        self.__config = self.__load_config()
+
+    def __load_config(self) -> dict:
+        return {
+            "fraud_rate": float(
+                os.getenv("FRAUD_RATE", 0.02)
+            ),  # Default: 0.02, Range: 0.0-0.1
+            "declined_rate": float(
+                os.getenv("DECLINED_RATE", 0.05)
+            ),  # Default: 0.05, Range: 0.0-0.2
+            "merchant_count": int(
+                os.getenv("MERCHANT_COUNT", 50)
+            ),  # Default: 50, Range: 10-500
+            "customer_count": int(
+                os.getenv("CUSTOMER_COUNT", 1000)
+            ),  # Default: 1000, Range: 100-10000
+            "min_amount": int(os.getenv("MIN_TRANSACTION_AMOUNT", 50000)),
+            "max_amount": int(os.getenv("MAX_TRANSACTION_AMOUNT", 2000000)),
+            "commission_ratio": float(os.getenv("COMMISSION_RATIO", 0.02)),
+            "vat_ratio": float(os.getenv("VAT_RATIO", 0.09)),
+        }
 
     def create_transaction(self, **kwargs) -> transaction.Transaction:
         timestamp = kwargs.get("timestamp", datetime.now(UTC))

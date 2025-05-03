@@ -20,7 +20,7 @@ from darooghe.infrastructure.messaging.kafka_config import (
 class TransactionProducer:
     def __init__(self):
         self.__config = self.__load_config()
-        self.__transaction_factory = TransactionFactory(self.__config)
+        self.__transaction_factory = TransactionFactory()
         kafka_broker = os.getenv("KAFKA_BROKER", LOCAL_KAFKA_BROKER)
         self.__kafka_service = KafkaService(
             bootstrap_servers=[kafka_broker],
@@ -37,22 +37,6 @@ class TransactionProducer:
             "peak_factor": float(
                 os.getenv("PEAK_FACTOR", 2.5)
             ),  # Default: 2.5, Range: 1.0-5.0
-            "fraud_rate": float(
-                os.getenv("FRAUD_RATE", 0.02)
-            ),  # Default: 0.02, Range: 0.0-0.1
-            "declined_rate": float(
-                os.getenv("DECLINED_RATE", 0.05)
-            ),  # Default: 0.05, Range: 0.0-0.2
-            "merchant_count": int(
-                os.getenv("MERCHANT_COUNT", 50)
-            ),  # Default: 50, Range: 10-500
-            "customer_count": int(
-                os.getenv("CUSTOMER_COUNT", 1000)
-            ),  # Default: 1000, Range: 100-10000
-            "min_amount": int(os.getenv("MIN_TRANSACTION_AMOUNT", 50000)),
-            "max_amount": int(os.getenv("MAX_TRANSACTION_AMOUNT", 2000000)),
-            "commission_ratio": float(os.getenv("COMMISSION_RATIO", 0.02)),
-            "vat_ratio": float(os.getenv("VAT_RATIO", 0.09)),
         }
 
     def __nhpp_rate(self) -> float:
