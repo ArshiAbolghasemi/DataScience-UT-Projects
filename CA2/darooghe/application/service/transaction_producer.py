@@ -10,8 +10,8 @@ from confluent_kafka import KafkaError, Message
 
 from darooghe.domain.factory.transaction_factory import TransactionFactory
 from darooghe.domain.util.serialization import Serializer
-from darooghe.infrastructure.service.messaging.kafka import KafkaService
-from darooghe.infrastructure.service.messaging.kafka_config import (
+from darooghe.infrastructure.messaging.kafka import KafkaService
+from darooghe.infrastructure.messaging.kafka_config import (
     LOCAL_KAFKA_BROKER,
     KafkaTopics,
 )

@@ -9,8 +9,8 @@ from confluent_kafka import KafkaError
 from darooghe.domain.entity.error import TransactionErrorLog
 from darooghe.domain.entity.transaction import Transaction
 from darooghe.domain.util.serialization import Serializer
-from darooghe.infrastructure.service.messaging.kafka import KafkaErrorLog, KafkaService
-from darooghe.infrastructure.service.messaging.kafka_config import (
+from darooghe.infrastructure.messaging.kafka import KafkaErrorLog, KafkaService
+from darooghe.infrastructure.messaging.kafka_config import (
     LOCAL_KAFKA_BROKER,
     KafkaGroups,
     KafkaTopics,
