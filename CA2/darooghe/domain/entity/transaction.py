@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+import os
 from typing import Dict, Optional, Tuple
 from enum import Enum
 
@@ -111,7 +112,12 @@ class Transaction:
                 False,
                 f"Future timestamp: {transaction_time}, current_time: {current_time}",
             )
-        elif transaction_time < (current_time - timedelta(days=1)):
+        elif transaction_time < (
+            current_time
+            - timedelta(
+                days=int(os.getenv("TRANSACTION_OLD_TIMESTAMP_THRESHOLD_DAYS", 1))
+            )
+        ):
             return False, f"Timestamp too old: {transaction_time}"
 
         return True, None
