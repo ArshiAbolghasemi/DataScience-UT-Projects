@@ -5,10 +5,12 @@ from typing import (
     Any,
     Dict,
     List,
+    Tuple,
     TypeVar,
     Type,
     Protocol,
     Union,
+    cast,
     get_type_hints,
     get_origin,
     get_args,
@@ -40,7 +42,7 @@ def serializable(cls: Type[T]) -> Type[T]:
         processed_data = {}
         type_hints = get_type_hints(cls)
 
-        for field in fields(cls):
+        for field in __get_fields(cls):
             if field.name not in data:
                 if field.default is not MISSING:
                     processed_data[field.name] = field.default
@@ -54,6 +56,11 @@ def serializable(cls: Type[T]) -> Type[T]:
                 processed_data[field.name] = __parse_value(value, field_type)
 
         return cls(**processed_data)
+
+    def __get_fields(cls: Type[Any]) -> Tuple:
+        if not is_dataclass(cls):
+            raise TypeError(f"{cls.__name__} must be a dataclass")
+        return fields(cast(type, cls))
 
     def __convert_value(value: Any) -> Any:
         if value is None:
