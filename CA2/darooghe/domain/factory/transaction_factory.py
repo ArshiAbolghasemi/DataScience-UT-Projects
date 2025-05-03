@@ -1,12 +1,13 @@
 import random
-from datetime import datetime, UTC
-from typing import List, Optional, Tuple
 import uuid
+from datetime import UTC, datetime
+from typing import List, Optional, Tuple
+
 from faker import Faker
 
 from darooghe.domain.entity import transaction
-from darooghe.domain.entity.location import Location
 from darooghe.domain.entity.device import OS, Device
+from darooghe.domain.entity.location import Location
 
 
 class TransactionFactory:

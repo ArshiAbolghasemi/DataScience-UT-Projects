@@ -1,16 +1,15 @@
-from dataclasses import dataclass
-from datetime import UTC, datetime
 import json
 import logging
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from confluent_kafka import (
     Consumer,
-    Producer,
-    KafkaException,
     KafkaError,
+    KafkaException,
+    Producer,
 )
-from typing import Any, Dict, List, Optional, Callable, Union
-
 from confluent_kafka.admin import AdminClient
 
 from darooghe.domain.util.serialization import serializable

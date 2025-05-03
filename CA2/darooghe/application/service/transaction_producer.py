@@ -2,8 +2,8 @@ import json
 import logging
 import os
 import random
-from datetime import datetime, UTC
 import time
+from datetime import UTC, datetime
 from typing import Optional, cast
 
 from confluent_kafka import KafkaError, Message

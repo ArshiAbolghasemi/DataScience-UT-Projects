@@ -1,13 +1,12 @@
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-import os
-from typing import Dict, Optional, Tuple
 from enum import Enum
+from typing import Dict, Optional, Tuple
 
-from darooghe.domain.entity.device import Device, OS
+from darooghe.domain.entity.device import OS, Device
 from darooghe.domain.entity.error import ErrorCode
 from darooghe.domain.entity.location import Location
-
 from darooghe.domain.util.serialization import serializable
 
 
