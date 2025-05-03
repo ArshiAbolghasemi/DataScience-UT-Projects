@@ -1,5 +1,5 @@
 from dataclasses import MISSING, is_dataclass, fields, fields
-from datetime import datetime, date
+from datetime import UTC, datetime, date, tzinfo
 from enum import Enum
 from typing import (
     Any,
@@ -96,7 +96,7 @@ def serializable(cls: Type[T]) -> Type[T]:
             return target_type(value)
 
         if target_type is datetime:
-            return dateutil.parser.parse(value)
+            return dateutil.parser.parse(value).replace(tzinfo=UTC)
         if target_type is date:
             return dateutil.parser.parse(value).date()
 
