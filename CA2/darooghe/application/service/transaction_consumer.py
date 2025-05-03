@@ -101,5 +101,8 @@ class TransactionConsumer:
 
 
 if __name__ == "__main__":
-    transaction_consumer = TransactionConsumer()
-    transaction_consumer.execute()
+    try:
+        transaction_consumer = TransactionConsumer()
+        transaction_consumer.execute()
+    except KeyboardInterrupt as e:
+        logging.info("Received keyboard interrupt, stopping transaction consumer")

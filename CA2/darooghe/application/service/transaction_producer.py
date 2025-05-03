@@ -117,5 +117,8 @@ class TransactionProducer:
 
 
 if __name__ == "__main__":
-    transaction_producer = TransactionProducer()
-    transaction_producer.produce_stream()
+    try:
+        transaction_producer = TransactionProducer()
+        transaction_producer.produce_stream()
+    except KeyboardInterrupt as e:
+        logging.info("Received keyboard interrupt, stopping transaction producer")
