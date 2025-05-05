@@ -40,10 +40,10 @@ class TransactionFactory:
         timestamp = kwargs.get("timestamp", datetime.now(UTC))
         transaction_id = kwargs.get("transaction_id", str(uuid.uuid4()))
         customer_id = kwargs.get(
-            "customer_id", f"cust_{random.randint(1, self.__config["customer_count"])}"
+            "customer_id", f"cust_{random.randint(1, self.__config['customer_count'])}"
         )
         merchant_id = kwargs.get(
-            "merchant_id", f"merhc_{random.randint(1, self.__config["merchant_count"])}"
+            "merchant_id", f"merhc_{random.randint(1, self.__config['merchant_count'])}"
         )
         merchant_category = kwargs.get(
             "merchant_category", random.choice(list(transaction.MerchantCategory))
@@ -53,7 +53,7 @@ class TransactionFactory:
         )
         amount = kwargs.get(
             "amount",
-            random.randint(self.__config["min_amount"], self.__config["max_amount"]),
+            random.randint(self.__config['min_amount'], self.__config['max_amount']),
         )
         location = kwargs.get("location", self.__random_location())
         device_info = kwargs.get("device_info", self.__random_device())
