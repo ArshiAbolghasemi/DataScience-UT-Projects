@@ -2,6 +2,7 @@ import logging
 from typing import cast
 
 from darooghe.domain.factory.transaction_factory import TransactionFactory
+from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.persistence.mongo import MongoDBClient
 from darooghe.infrastructure.persistence.mongo_config import Mongo
@@ -11,9 +12,6 @@ class TransactionDataLoader:
     def __init__(self, mongo_client: MongoDBClient):
         self.__mongo_client: MongoDBClient = mongo_client
         self.__factory: TransactionFactory = TransactionFactory()
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
-        )
 
     def load_initial_data(
         self, num_transactions: int = 20000, batch_size: int = 100
@@ -35,6 +33,7 @@ class TransactionDataLoader:
 
 
 def __main():
+    configure_cli_log()
     with MongoDBClient(Mongo.Config.MONGO_URI, Mongo.DB.DAROOGHE) as mongo_client:
         transaction_data_loader = TransactionDataLoader(mongo_client)
         transaction_data_loader.load_initial_data()

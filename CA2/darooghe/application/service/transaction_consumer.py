@@ -8,6 +8,7 @@ from confluent_kafka import KafkaError
 
 from darooghe.domain.entity.error import TransactionErrorLog
 from darooghe.domain.entity.transaction import Transaction
+from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.messaging.kafka import KafkaErrorLog, KafkaService
 from darooghe.infrastructure.messaging.kafka_config import (
@@ -20,9 +21,6 @@ class TransactionConsumer:
     def __init__(self) -> None:
         kafka_broker = Kafka.Config.KAFKA_BROKER
         self.__kafka_service = KafkaService([kafka_broker])
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
-        )
 
     def execute(self, batch_size: int = 100):
         while True:
@@ -99,6 +97,7 @@ class TransactionConsumer:
 
 
 def __main():
+    configure_cli_log()
     try:
         transaction_consumer = TransactionConsumer()
         transaction_consumer.execute()

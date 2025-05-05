@@ -9,6 +9,7 @@ from typing import Optional, cast
 from confluent_kafka import KafkaError, Message
 
 from darooghe.domain.factory.transaction_factory import TransactionFactory
+from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.serialization import Serializer
 from darooghe.infrastructure.messaging.kafka import KafkaService
 from darooghe.infrastructure.messaging.kafka_config import (
@@ -23,9 +24,6 @@ class TransactionProducer:
         kafka_broker = Kafka.Config.KAFKA_BROKER
         self.__kafka_service = KafkaService(
             bootstrap_servers=[kafka_broker],
-        )
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
         )
 
     def __load_config(self) -> dict:
@@ -100,6 +98,7 @@ class TransactionProducer:
 
 
 def __main():
+    configure_cli_log()
     try:
         transaction_producer = TransactionProducer()
         transaction_producer.produce_stream()
