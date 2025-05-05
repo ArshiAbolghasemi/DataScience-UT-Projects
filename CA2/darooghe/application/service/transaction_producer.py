@@ -99,9 +99,13 @@ class TransactionProducer:
             )
 
 
-if __name__ == "__main__":
+def __main():
     try:
         transaction_producer = TransactionProducer()
         transaction_producer.produce_stream()
     except KeyboardInterrupt:
         logging.info("Received keyboard interrupt, stopping transaction producer")
+
+
+if __name__ == "__main__":
+    __main()

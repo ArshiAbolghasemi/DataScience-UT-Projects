@@ -98,9 +98,13 @@ class TransactionConsumer:
             return False
 
 
-if __name__ == "__main__":
+def __main():
     try:
         transaction_consumer = TransactionConsumer()
         transaction_consumer.execute()
     except KeyboardInterrupt:
         logging.info("Received keyboard interrupt, stopping transaction consumer")
+
+
+if __name__ == "__main__":
+    __main()

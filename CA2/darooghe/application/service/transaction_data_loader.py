@@ -34,7 +34,11 @@ class TransactionDataLoader:
         logging.info("Initial transaction load completed")
 
 
-if __name__ == "__main__":
+def __main():
     with MongoDBClient(Mongo.Config.MONGO_URI, Mongo.DB.DAROOGHE) as mongo_client:
         transaction_data_loader = TransactionDataLoader(mongo_client)
         transaction_data_loader.load_initial_data()
+
+
+if __name__ == "__main__":
+    __main()
