@@ -53,7 +53,7 @@ class TransactionFactory:
         )
         amount = kwargs.get(
             "amount",
-            random.randint(self.__config['min_amount'], self.__config['max_amount']),
+            random.randint(self.__config["min_amount"], self.__config["max_amount"]),
         )
         location = kwargs.get("location", self.__random_location())
         device_info = kwargs.get("device_info", self.__random_device())
