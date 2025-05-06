@@ -14,4 +14,4 @@ class Mongo:
 
     class Collections:
         TRANSACTION = "transaction"
-        DAILY_TRANSACTION_TEMPORAL_PATTERNS = "daily_transaction_temporal_patterns"
+        TRANSACTION_TEMPORAL_PATTERNS = "transaction_temporal_patterns"
