@@ -96,3 +96,21 @@ class Mongo:
             @classmethod
             def get_indexes(cls) -> List[IndexModel]:
                 return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class MerchantCategoryStats:
+            @classmethod
+            def get_name(cls) -> str:
+                return "merchant_category_stats"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class MerchantCategoryTimeDist:
+            @classmethod
+            def get_name(cls) -> str:
+                return "merchant_category_time_dist"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]

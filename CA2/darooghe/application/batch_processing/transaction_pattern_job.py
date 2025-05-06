@@ -7,6 +7,7 @@ from pyspark.sql import functions as F
 
 from darooghe.domain.entity import customer
 from darooghe.domain.util.logging import configure_cli_log
+from darooghe.domain.util.time import TimeOfDay
 from darooghe.infrastructure.batch_processing.spark_config import Spark
 from darooghe.infrastructure.persistence.mongo_config import Mongo
 
@@ -21,6 +22,7 @@ class TransactionPatternJob:
 
         transactions_df = self._load_and_preprocess_data(start_date, end_date)
 
+        '''
         transaction_temporal_patterns = self._analyze_transction_temporal_patterns(
             transactions_df
         )
@@ -37,6 +39,11 @@ class TransactionPatternJob:
         customer_segments = self._analyze_customer_segments(transactions_df)
         for collection, df in customer_segments.items():
             self._save_result(result=df, collection=collection)
+            '''
+
+        merchant_categories_behavior = self._compare_merchant_categories(transactions_df)
+        for collection, df in merchant_categories_behavior.items():
+            self._save_result(result=df, collection=collection)
 
     def _load_and_preprocess_data(
         self, start_date: datetime, end_date: datetime
@@ -52,8 +59,28 @@ class TransactionPatternJob:
             )
         )
 
-        return df.withColumn("date", F.to_date("timestamp")).withColumn(
-            "hour", F.hour("timestamp")
+        return (
+            df.withColumn("date", F.to_date("timestamp"))
+            .withColumn("hour", F.hour("timestamp"))
+            .withColumn(
+                "time_of_day",
+                F.when(
+                    (F.col("hour") >= TimeOfDay.MORNING.start)
+                    & (F.col("hour") <= TimeOfDay.MORNING.end),
+                    TimeOfDay.MORNING.label,
+                )
+                .when(
+                    (F.col("hour") >= TimeOfDay.AFTERNOON.start)
+                    & (F.col("hour") <= TimeOfDay.AFTERNOON.end),
+                    TimeOfDay.AFTERNOON.label,
+                )
+                .when(
+                    (F.col("hour") >= TimeOfDay.EVENING.start)
+                    & (F.col("hour") <= TimeOfDay.EVENING.end),
+                    TimeOfDay.EVENING.label,
+                )
+                .otherwise(TimeOfDay.NIGHT.label),
+            )
         )
 
     def _analyze_transction_temporal_patterns(self, df: DataFrame) -> DataFrame:
@@ -132,6 +159,35 @@ class TransactionPatternJob:
             Mongo.Collections.CustomerMetrics.get_name(): customer_metrics,
             Mongo.Collections.CustomerSegmentStats.get_name(): customer_segment_stats,
             Mongo.Collections.MerchantCategoryCustomerSegments.get_name(): merchant_category_customer_segments,
+        }
+
+    def _compare_merchant_categories(self, df: DataFrame) -> Dict[str, DataFrame]:
+        merchant_category_stats = (
+            df.groupBy("merchant_category")
+            .agg(
+                F.count("*").alias("transaction_count"),
+                F.sum("amount").alias("total_amount"),
+                F.avg("amount").alias("avg_amount"),
+                F.sum("commission_amount").alias("total_commission"),
+                (F.sum("commission_amount") / F.sum("amount")).alias("commission_rate"),
+                F.countDistinct("customer_id").alias("unique_customers"),
+                F.expr("percentile(amount, 0.5)").alias("median_amount"),
+            )
+            .orderBy(F.desc("total_amount"))
+        )
+
+        merchant_category_time_dist = (
+            df.groupBy("merchant_category", "time_of_day")
+            .agg(
+                F.count("*").alias("transaction_count"),
+                F.sum("amount").alias("total_amount"),
+            )
+            .orderBy("merchant_category", "time_of_day")
+        )
+
+        return {
+            Mongo.Collections.MerchantCategoryStats.get_name(): merchant_category_stats,
+            Mongo.Collections.MerchantCategoryTimeDist.get_name(): merchant_category_time_dist,
         }
 
     def _save_result(self, result: DataFrame, collection: str):
