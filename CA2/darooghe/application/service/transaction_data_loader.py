@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 import logging
 from typing import cast
 
@@ -19,8 +20,13 @@ class TransactionDataLoader:
         logging.info(f"Generating {num_transactions} historical transactions...")
         documents = []
         for _ in range(num_transactions):
-            transaction = self.__factory.create_transaction()
-            documents.append(cast(Serializer, transaction).to_dict())
+            transaction = self.__factory.create_historical_transactions(
+                count=1, days_back=14
+            )[0]
+            document = cast(Serializer, transaction).to_dict()
+            document["created_at"] = datetime.now(UTC)
+            document["timestamp"] = transaction.timestamp
+            documents.append(document)
 
             if len(documents) >= batch_size:
                 logging.info("Loading  batch transactions into __mongo_clientDB...")
