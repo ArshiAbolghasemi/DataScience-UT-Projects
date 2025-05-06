@@ -1,6 +1,7 @@
 import logging
-from pymongo import IndexModel, ASCENDING
 from typing import List
+
+from pymongo import ASCENDING, IndexModel
 
 from darooghe.infrastructure.persistence.mongo import MongoDBClient
 from darooghe.infrastructure.persistence.mongo_config import Mongo
