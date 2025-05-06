@@ -1,8 +1,9 @@
 import logging
 from typing import List
 
-from pymongo import ASCENDING, IndexModel
+from pymongo import IndexModel
 
+from darooghe.domain.util.logging import configure_cli_log
 from darooghe.infrastructure.persistence.mongo import MongoDBClient
 from darooghe.infrastructure.persistence.mongo_config import Mongo
 
@@ -10,15 +11,15 @@ from darooghe.infrastructure.persistence.mongo_config import Mongo
 class CollectionSetup:
     def __init__(self, mongo_client: MongoDBClient):
         self.client: MongoDBClient = mongo_client
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
-        )
 
     def setup_collections(self):
-        logging.info(f"Start to setup collections for db: {self.client.db}")
-        self.setup_transaction_collection()
-        self.setup_daily_transaction_temproral_patterns()
-        logging.info("All collections setup completed")
+        logging.info("Starting setup collections...")
+        collections = Mongo.Collections.get_all_collectinos()
+        for collection in collections:
+            self.__setup_collection(
+                collection_name=collection.get_name(), indexes=collection.get_indexes()
+            )
+        logging.info("Collections were setup successfully")
 
     def __setup_collection(
         self, collection_name: str, indexes: List[IndexModel]
@@ -27,28 +28,9 @@ class CollectionSetup:
         for index in indexes:
             self.client.create_index(collection_name=collection_name, index=index)
 
-    def __index_created_at_ttl(self):
-        return IndexModel(
-            [("created_at", ASCENDING)],
-            expireAfterSeconds=Mongo.Config.MONGO_DB_TRANSACTION_DATA_TTL,
-            name="created_at_ttl_idx",
-        )
-
-    def setup_transaction_collection(self):
-        indexes = [self.__index_created_at_ttl()]
-        self.__setup_collection(
-            collection_name=Mongo.Collections.TRANSACTION, indexes=indexes
-        )
-
-    def setup_daily_transaction_temproral_patterns(self):
-        indexes = [self.__index_created_at_ttl()]
-        self.__setup_collection(
-            collection_name=Mongo.Collections.TRANSACTION_TEMPORAL_PATTERNS,
-            indexes=indexes,
-        )
-
 
 if __name__ == "__main__":
+    configure_cli_log()
     with MongoDBClient(
         connection_string=Mongo.Config.MONGO_URI, db_name=Mongo.DB.DAROOGHE
     ) as mongo_client:

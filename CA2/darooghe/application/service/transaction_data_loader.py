@@ -31,7 +31,7 @@ class TransactionDataLoader:
             if len(documents) >= batch_size:
                 logging.info("Loading  batch transactions into __mongo_clientDB...")
                 self.__mongo_client.insert_many(
-                    Mongo.Collections.TRANSACTION, documents
+                    Mongo.Collections.Transaction.get_name(), documents
                 )
                 documents.clear()
 

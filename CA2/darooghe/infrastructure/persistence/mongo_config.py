@@ -1,4 +1,16 @@
 import os
+from typing import List, Protocol, Type, runtime_checkable
+
+from pymongo import ASCENDING, IndexModel
+
+
+@runtime_checkable
+class CollectionProtocol(Protocol):
+    @classmethod
+    def get_name(cls) -> str: ...
+
+    @classmethod
+    def get_indexes(cls) -> List[IndexModel]: ...
 
 
 class Mongo:
@@ -13,5 +25,56 @@ class Mongo:
         MONGO_URI = os.getenv("MONGO_URI", "")
 
     class Collections:
-        TRANSACTION = "transaction"
-        TRANSACTION_TEMPORAL_PATTERNS = "transaction_temporal_patterns"
+        @classmethod
+        def get_all_collectinos(cls) -> List[Type[CollectionProtocol]]:
+            collections = []
+
+            for _, attr in vars(cls).items():
+                if isinstance(attr, type) and isinstance(attr, CollectionProtocol):
+                    collections.append(attr)
+
+            return collections
+
+        @classmethod
+        def _get_index_created_at_ttl(cls):
+            return IndexModel(
+                [("created_at", ASCENDING)],
+                expireAfterSeconds=Mongo.Config.MONGO_DB_TRANSACTION_DATA_TTL,
+                name="created_at_ttl_idx",
+            )
+
+        class Transaction:
+            @classmethod
+            def get_name(cls) -> str:
+                return "transaction"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class TransactionTemporalPatterns:
+            @classmethod
+            def get_name(cls) -> str:
+                return "transaction_temporal_patterns"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class HourlyPeaks:
+            @classmethod
+            def get_name(cls) -> str:
+                return "hourly_peaks"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class MerchantPeaks:
+            @classmethod
+            def get_name(cls) -> str:
+                return "merchant_peaks"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]
