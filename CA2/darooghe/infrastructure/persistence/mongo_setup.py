@@ -26,18 +26,6 @@ class CollectionSetup:
         for index in indexes:
             self.client.create_index(collection_name=collection_name, index=index)
 
-    def setup_transaction_collection(self):
-        indexes = [
-            IndexModel(
-                [("timestamp", ASCENDING)],
-                expireAfterSeconds=Mongo.Config.MONGO_DB_TRANSACTION_DATA_TTL,
-                name="timestamp_ttl_idx",
-            ),
-        ]
-        self.__setup_collection(
-            collection_name=Mongo.Collections.TRANSACTION, indexes=indexes
-        )
-
     def __index_created_at_ttl(self):
         return IndexModel(
             [("created_at", ASCENDING)],
@@ -45,10 +33,16 @@ class CollectionSetup:
             name="created_at_ttl_idx",
         )
 
+    def setup_transaction_collection(self):
+        indexes = [self.__index_created_at_ttl()]
+        self.__setup_collection(
+            collection_name=Mongo.Collections.TRANSACTION, indexes=indexes
+        )
+
     def setup_daily_transaction_temproral_patterns(self):
         indexes = [self.__index_created_at_ttl()]
         self.__setup_collection(
-            collection_name=Mongo.Collections.DAILY_TRANSACTION_TEMPORAL_PATTERNS,
+            collection_name=Mongo.Collections.TRANSACTION_TEMPORAL_PATTERNS,
             indexes=indexes,
         )
 
