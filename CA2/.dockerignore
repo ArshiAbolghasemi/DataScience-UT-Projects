@@ -1,0 +1,21 @@
+# Python virtual environment
+venv/
+
+# Bytecode cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Egg and distribution info
+*.egg-info/
+dist/
+build/
+
+# Spark logs (if any)
+*.log
+
+# Local IDE/editor configs (optional, but good practice)
+.vscode/
+.idea/
+*.swp
