@@ -4,7 +4,7 @@ import os
 class Kafka:
 
     class Config:
-        KAFKA_BROKER = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
+        KAFKA_BROKER = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "")
 
     class Topics:
         DAROOGHE_TRANSACTIONS = "darooghe.transactions"
