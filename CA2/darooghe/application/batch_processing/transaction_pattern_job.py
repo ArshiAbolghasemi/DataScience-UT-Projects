@@ -1,10 +1,11 @@
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Optional
+from typing import Dict, Optional
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
+from darooghe.domain.entity import customer
 from darooghe.domain.util.logging import configure_cli_log
 from darooghe.infrastructure.batch_processing.spark_config import Spark
 from darooghe.infrastructure.persistence.mongo_config import Mongo
@@ -32,6 +33,10 @@ class TransactionPatternJob:
         self._save_result(
             result=merchant_peaks, collection=Mongo.Collections.MerchantPeaks.get_name()
         )
+
+        customer_segments = self._analyze_customer_segments(transactions_df)
+        for collection, df in customer_segments.items():
+            self._save_result(result=df, collection=collection)
 
     def _load_and_preprocess_data(
         self, start_date: datetime, end_date: datetime
@@ -72,6 +77,62 @@ class TransactionPatternJob:
             .withColumn("created_at", F.lit(datetime.now(UTC)))
             .orderBy("merchant_category", "date", F.desc("transaction_count"))
         )
+
+    def _analyze_customer_segments(self, df: DataFrame) -> Dict[str, DataFrame]:
+        customer_metrics = (
+            df.groupBy("customer_id")
+            .agg(
+                F.count("*").alias("transaction_count"),
+                F.sum("amount").alias("total_spend"),
+                F.avg("amount").alias("avg_spend"),
+                F.countDistinct("merchant_category").alias("category_variety"),
+                F.datediff(F.max("date"), F.min("date")).alias("active_days"),
+            )
+            .withColumn(
+                "segment",
+                F.when(
+                    (
+                        F.col("total_spend")
+                        >= customer.SEGMENT_RULES.HIGH_VALUE_MIN_SPEND
+                    )
+                    & (
+                        F.col("transaction_count")
+                        >= customer.SEGMENT_RULES.HIGH_VALUE_MIN_TRANSACTIONS
+                    ),
+                    customer.Segment.HIGH_VALUE,
+                )
+                .when(
+                    F.col("transaction_count")
+                    >= customer.SEGMENT_RULES.FREQUENT_MIN_TRANSACTIONS,
+                    customer.Segment.FREQUENT,
+                )
+                .when(
+                    F.col("active_days") <= customer.SEGMENT_RULES.NEW_MAX_DAYS,
+                    customer.Segment.NEW,
+                )
+                .otherwise(customer.Segment.REGULAR),
+            )
+        )
+
+        customer_segment_stats = customer_metrics.groupBy("segment").agg(
+            F.count("*").alias("customer_count"),
+            F.avg("transaction_count").alias("avg_transactions"),
+            F.avg("total_spend").alias("avg_spend"),
+            F.sum("total_spend").alias("total_spend"),
+        )
+
+        merchant_category_customer_segments = (
+            df.join(customer_metrics, "customer_id")
+            .groupBy("merchant_category", "segment")
+            .agg(F.count("*").alias("transaction_count"))
+            .orderBy("merchant_category", "segment")
+        )
+
+        return {
+            Mongo.Collections.CustomerMetrics.get_name(): customer_metrics,
+            Mongo.Collections.CustomerSegmentStats.get_name(): customer_segment_stats,
+            Mongo.Collections.MerchantCategoryCustomerSegments.get_name(): merchant_category_customer_segments,
+        }
 
     def _save_result(self, result: DataFrame, collection: str):
         (
