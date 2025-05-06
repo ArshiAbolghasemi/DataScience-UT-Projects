@@ -28,7 +28,7 @@ class TransactionPatternJob:
             collection=Mongo.Collections.TransactionTemporalPatterns.get_name(),
         )
 
-        merchant_peaks = self._identify_merchant_peaks(transactions_df)
+        merchant_peaks = self._analyze_merchant_peaks(transactions_df)
         self._save_result(
             result=merchant_peaks, collection=Mongo.Collections.MerchantPeaks.get_name()
         )
@@ -62,7 +62,7 @@ class TransactionPatternJob:
             .orderBy("date")
         )
 
-    def _identify_merchant_peaks(self, df: DataFrame) -> DataFrame:
+    def _analyze_merchant_peaks(self, df: DataFrame) -> DataFrame:
         return (
             df.groupBy("merchant_category", "date", "hour")
             .agg(
