@@ -1,6 +1,6 @@
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Optional
+from typing import Dict, Optional
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
@@ -25,8 +25,12 @@ class TransactionPatternJob:
         )
         self._save_result(
             result=transaction_temporal_patterns,
-            collection=Mongo.Collections.TRANSACTION_TEMPORAL_PATTERNS,
+            collection=Mongo.Collections.TransactionTemporalPatterns.get_name(),
         )
+
+        peaks = self._identify_peaks(transactions_df)
+        for collection, peak in peaks.items():
+            self._save_result(result=peak, collection=collection)
 
     def _load_and_preprocess_data(
         self, start_date: datetime, end_date: datetime
@@ -35,14 +39,16 @@ class TransactionPatternJob:
         df = (
             self.spark.read.format("mongodb")
             .option("database", Mongo.DB.DAROOGHE)
-            .option("collection", Mongo.Collections.TRANSACTION)
+            .option("collection", Mongo.Collections.Transaction.get_name())
             .load()
             .filter(
                 (F.col("timestamp") >= start_date) & (F.col("timestamp") <= end_date)
             )
         )
 
-        return df.withColumn("date", F.to_date("timestamp"))
+        return df.withColumn("date", F.to_date("timestamp")).withColumn(
+            "hour", F.hour("timestamp")
+        )
 
     def _analyze_transction_temporal_patterns(self, df: DataFrame) -> DataFrame:
         return (
@@ -54,6 +60,29 @@ class TransactionPatternJob:
             .withColumn("created_at", F.lit(datetime.now(UTC)))
             .orderBy("date")
         )
+
+    def _identify_peaks(self, df: DataFrame) -> Dict[str, DataFrame]:
+        hourly_peaks = (
+            df.groupBy("date", "hour")
+            .agg(
+                F.count("*").alias("transaction_count"),
+                F.sum("amount").alias("total_amount"),
+            )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
+            .orderBy("date", F.desc("transaction_count"))
+        )
+
+        merchant_peaks = (
+            df.groupBy("merchant_category", "hour")
+            .agg(
+                F.count("*").alias("transaction_count"),
+                F.sum("amount").alias("total_amount"),
+            )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
+            .orderBy("merchant_category", F.desc("transaction_count"))
+        )
+
+        return {"hourly_peaks": hourly_peaks, "merchant_peaks": merchant_peaks}
 
     def _save_result(self, result: DataFrame, collection: str):
         (
