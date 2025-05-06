@@ -7,8 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-17-jdk-headless \
     procps \
     libsnappy1v5 \
-    libhadoop3 \
-    libhdfs3 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
