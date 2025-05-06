@@ -10,9 +10,7 @@ class Mongo:
         MONGO_DB_TRANSACTION_DATA_TTL = int(
             os.getenv("MONGO_DB_TRANSACTION_DATA_TTL", 86400)
         )
-        MONGO_URI = os.getenv(
-            "MONGO_URI", "mongodb://root:example@localhost:27017/?authSource=admin"
-        )
+        MONGO_URI = os.getenv("MONGO_URI")
 
     class Collections:
         TRANSACTION = "transaction"
