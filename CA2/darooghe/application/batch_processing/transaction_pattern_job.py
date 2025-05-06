@@ -22,7 +22,6 @@ class TransactionPatternJob:
 
         transactions_df = self._load_and_preprocess_data(start_date, end_date)
 
-        '''
         transaction_temporal_patterns = self._analyze_transction_temporal_patterns(
             transactions_df
         )
@@ -39,9 +38,10 @@ class TransactionPatternJob:
         customer_segments = self._analyze_customer_segments(transactions_df)
         for collection, df in customer_segments.items():
             self._save_result(result=df, collection=collection)
-            '''
 
-        merchant_categories_behavior = self._compare_merchant_categories(transactions_df)
+        merchant_categories_behavior = self._compare_merchant_categories(
+            transactions_df
+        )
         for collection, df in merchant_categories_behavior.items():
             self._save_result(result=df, collection=collection)
 
