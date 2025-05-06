@@ -61,15 +61,6 @@ class Mongo:
             def get_indexes(cls) -> List[IndexModel]:
                 return [Mongo.Collections._get_index_created_at_ttl()]
 
-        class HourlyPeaks:
-            @classmethod
-            def get_name(cls) -> str:
-                return "hourly_peaks"
-
-            @classmethod
-            def get_indexes(cls) -> List[IndexModel]:
-                return [Mongo.Collections._get_index_created_at_ttl()]
-
         class MerchantPeaks:
             @classmethod
             def get_name(cls) -> str:

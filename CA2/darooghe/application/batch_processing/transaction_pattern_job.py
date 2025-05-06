@@ -1,6 +1,6 @@
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Dict, Optional
+from typing import Optional
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
@@ -28,9 +28,10 @@ class TransactionPatternJob:
             collection=Mongo.Collections.TransactionTemporalPatterns.get_name(),
         )
 
-        peaks = self._identify_peaks(transactions_df)
-        for collection, peak in peaks.items():
-            self._save_result(result=peak, collection=collection)
+        merchant_peaks = self._identify_merchant_peaks(transactions_df)
+        self._save_result(
+            result=merchant_peaks, collection=Mongo.Collections.MerchantPeaks.get_name()
+        )
 
     def _load_and_preprocess_data(
         self, start_date: datetime, end_date: datetime
@@ -61,28 +62,16 @@ class TransactionPatternJob:
             .orderBy("date")
         )
 
-    def _identify_peaks(self, df: DataFrame) -> Dict[str, DataFrame]:
-        hourly_peaks = (
-            df.groupBy("date", "hour")
+    def _identify_merchant_peaks(self, df: DataFrame) -> DataFrame:
+        return (
+            df.groupBy("merchant_category", "date", "hour")
             .agg(
                 F.count("*").alias("transaction_count"),
                 F.sum("amount").alias("total_amount"),
             )
             .withColumn("created_at", F.lit(datetime.now(UTC)))
-            .orderBy("date", F.desc("transaction_count"))
+            .orderBy("merchant_category", "date", F.desc("transaction_count"))
         )
-
-        merchant_peaks = (
-            df.groupBy("merchant_category", "hour")
-            .agg(
-                F.count("*").alias("transaction_count"),
-                F.sum("amount").alias("total_amount"),
-            )
-            .withColumn("created_at", F.lit(datetime.now(UTC)))
-            .orderBy("merchant_category", F.desc("transaction_count"))
-        )
-
-        return {"hourly_peaks": hourly_peaks, "merchant_peaks": merchant_peaks}
 
     def _save_result(self, result: DataFrame, collection: str):
         (
