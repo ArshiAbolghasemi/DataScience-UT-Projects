@@ -123,3 +123,12 @@ class Mongo:
             @classmethod
             def get_indexes(cls) -> List[IndexModel]:
                 return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class WeeklySpendingTrend:
+            @classmethod
+            def get_name(cls) -> str:
+                return "weeklt_spending_trend"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]

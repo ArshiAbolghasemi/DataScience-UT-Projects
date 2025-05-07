@@ -21,30 +21,25 @@ class TransactionPatternJob:
         start_date = end_date - timedelta(days=lookback_days)
 
         transactions_df = self._load_and_preprocess_data(start_date, end_date)
+
         results = {}
-        transaction_temporal_patterns = self._analyze_transction_temporal_patterns(
-            transactions_df
-        )
         results[Mongo.Collections.TransactionTemporalPatterns.get_name()] = (
-            transaction_temporal_patterns
+            self._analyze_transction_temporal_patterns(transactions_df)
         )
-
-        merchant_peaks = self._analyze_merchant_peaks(transactions_df)
-        results[Mongo.Collections.MerchantPeaks.get_name()] = merchant_peaks
-
+        results[Mongo.Collections.MerchantPeaks.get_name()] = (
+            self._analyze_merchant_peaks(transactions_df)
+        )
         customer_segments = self._analyze_customer_segments(transactions_df)
         results = results | customer_segments
-
         merchant_categories_behavior = self._compare_merchant_categories(
             transactions_df
         )
         results = results | merchant_categories_behavior
-
-        transaction_per_time_of_day = self._analyze_transactions_per_time_of_day(
-            transactions_df
-        )
         results[Mongo.Collections.TransactionPerTimeOfDay.get_name()] = (
-            transaction_per_time_of_day
+            self._analyze_transactions_per_time_of_day(transactions_df)
+        )
+        results[Mongo.Collections.WeeklySpendingTrend.get_name()] = (
+            self._analyze_spend_trend(transactions_df)
         )
         for collection, result in results.items():
             self._save_result(result=result, collection=collection)
@@ -212,6 +207,25 @@ class TransactionPatternJob:
             )
             .withColumn("created_at", F.lit(datetime.now(UTC)))
             .orderBy(F.desc("transaction_count"))
+        )
+
+    def _analyze_spend_trend(self, df: DataFrame) -> DataFrame:
+        now = datetime.now(UTC)
+        return (
+            df.filter(
+                (F.col("timestamp") >= now - timedelta(days=365))
+                & (F.col("timestamp") <= now)
+            )
+            .withColumn("week", F.weekofyear("timestamp"))
+            .alias("week")
+            .groupBy("week")
+            .agg(
+                F.count("*").alias("transaction_count"),
+                F.sum("amount").alias("total_amount"),
+                F.avg("amount").alias("avg_amount"),
+            )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
+            .orderBy("week")
         )
 
     def _save_result(self, result: DataFrame, collection: str):
