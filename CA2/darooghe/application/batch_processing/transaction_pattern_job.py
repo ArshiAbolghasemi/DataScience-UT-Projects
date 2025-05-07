@@ -20,7 +20,7 @@ class TransactionPatternJob:
         end_date = end_date or datetime.now(UTC)
         start_date = end_date - timedelta(days=lookback_days)
 
-        transactions_df = self._load_and_preprocess_data(start_date, end_date)
+        transactions_df = self._load_transaction_data(start_date, end_date)
 
         results = {}
         results[Mongo.Collections.TransactionTemporalPatterns.get_name()] = (
@@ -44,7 +44,7 @@ class TransactionPatternJob:
         for collection, result in results.items():
             self._save_result(result=result, collection=collection)
 
-    def _load_and_preprocess_data(
+    def _load_transaction_data(
         self, start_date: datetime, end_date: datetime
     ) -> DataFrame:
 
