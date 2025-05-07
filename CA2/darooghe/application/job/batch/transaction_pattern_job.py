@@ -222,7 +222,7 @@ class TransactionPatternJob:
     def _analyze_spend_trend(self, df: DataFrame) -> Dict[str, DataFrame]:
         now = datetime.now(UTC)
         return {
-            Mongo.Collections.WeeklySpendingTrend: (
+            Mongo.Collections.WeeklySpendingTrend.get_name(): (
                 df.filter(
                     (F.col("timestamp") >= now - timedelta(days=365))
                     & (F.col("timestamp") <= now)
