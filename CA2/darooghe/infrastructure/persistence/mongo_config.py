@@ -150,3 +150,12 @@ class Mongo:
             @classmethod
             def get_indexes(cls) -> List[IndexModel]:
                 return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class CommissionModelSimulations:
+            @classmethod
+            def get_name(cls) -> str:
+                return "commission_model_simulations"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]

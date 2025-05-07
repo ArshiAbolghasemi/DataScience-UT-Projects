@@ -5,6 +5,11 @@ from typing import Dict, Optional
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
+from darooghe.domain.entity.commission import (
+    CommissionFlat,
+    CommissionTiered,
+    CommissionVolume,
+)
 from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.time import JAVA_DATE_FORMAT_YEAR_MONTH
 from darooghe.infrastructure.data_processing.spark_config import Spark
@@ -22,9 +27,10 @@ class CommissionAnalysisJob:
         transaction_df = self._load_transaction_data(start_date, end_date)
 
         results = (
-            {} 
+            {}
             | self._analyze_commission_per_merchant_category(transaction_df)
             | self._analyze_commission_trends(transaction_df)
+            | self._simulate_commission_models(transaction_df)
         )
 
         for collection, result in results.items():
@@ -97,6 +103,84 @@ class CommissionAnalysisJob:
                 .orderBy("month")
             )
         }
+
+    def _simulate_commission_models(self, df: DataFrame) -> Dict[str, DataFrame]:
+        current_metrics = df.groupBy("merchant_category").agg(
+            F.sum("amount").alias("current_total_amount"),
+            F.sum("commission_amount").alias("current_total_commission"),
+        )
+
+        flat_rate = current_metrics.withColumn(
+            "flat_rate_projection_commission",
+            F.col("current_total_amount") * CommissionFlat.RATE.value,
+        )
+
+        tiered_model = current_metrics.withColumn(
+            "tiered_projection_commission",
+            F.when(
+                F.col("current_total_amount")
+                <= CommissionTiered.Tier1.MAX_AMOUNT_THRESHOLD.value,
+                F.col("current_total_amount") * CommissionTiered.Tier1.RATE.value,
+            )
+            .when(
+                F.col("current_total_amount")
+                <= CommissionTiered.Tier2.MAX_AMOUNT_THRESHOLD.value,
+                CommissionTiered.Tier2.BASE_COMMISSION.value
+                + (
+                    F.col("current_total_amount")
+                    - CommissionTiered.Tier1.MAX_AMOUNT_THRESHOLD.value
+                )
+                * CommissionTiered.Tier2.RATE.value,
+            )
+            .otherwise(
+                CommissionTiered.Tier3.BASE_COMMISSION.value
+                + (
+                    F.col("current_total_amount")
+                    - CommissionTiered.Tier2.MAX_AMOUNT_THRESHOLD.value
+                )
+                * CommissionTiered.Tier3.RATE.value
+            ),
+        )
+
+        volume_based = current_metrics.withColumn(
+            "volume_based_projection_commission",
+            F.col("current_total_amount")
+            * F.when(
+                F.col("current_total_amount")
+                < CommissionVolume.Small.MAX_AMOUNT_THRESHOLD.value,
+                CommissionVolume.Small.RATE.value,
+            )
+            .when(
+                F.col("current_total_amount")
+                < CommissionVolume.Medium.MAX_AMOUNT_THRESHOLD.value,
+                CommissionVolume.Medium.RATE.value,
+            )
+            .otherwise(CommissionVolume.Large.RATE.value),
+        )
+
+        simulations = (
+            current_metrics.join(
+                flat_rate.select(
+                    "merchant_category", "flat_rate_projection_commission"
+                ),
+                "merchant_category",
+            )
+            .join(
+                tiered_model.select(
+                    "merchant_category", "tiered_projection_commission"
+                ),
+                "merchant_category",
+            )
+            .join(
+                volume_based.select(
+                    "merchant_category", "volume_based_projection_commission"
+                ),
+                "merchant_category",
+            )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
+        )
+
+        return {Mongo.Collections.CommissionModelSimulations.get_name(): simulations}
 
 
 def _main():
