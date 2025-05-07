@@ -17,7 +17,7 @@ class TransactionPatternJob:
         self.spark = spark
 
     def run(self, end_date: Optional[datetime] = None, lookback_days: int = 90):
-        end_date = end_date or datetime.now()
+        end_date = end_date or datetime.now(UTC)
         start_date = end_date - timedelta(days=lookback_days)
 
         transactions_df = self._load_and_preprocess_data(start_date, end_date)
