@@ -15,13 +15,13 @@ class TransactionDataLoader:
         self.__factory: TransactionFactory = TransactionFactory()
 
     def load_initial_data(
-        self, num_transactions: int = 20000, batch_size: int = 100
+        self, num_transactions: int = 100_000, batch_size: int = 100
     ) -> None:
         logging.info(f"Generating {num_transactions} historical transactions...")
         documents = []
         for _ in range(num_transactions):
             transaction = self.__factory.create_historical_transactions(
-                count=1, days_back=14
+                count=1, days_back=90
             )[0]
             document = cast(Serializer, transaction).to_dict()
             document["created_at"] = datetime.now(UTC)
