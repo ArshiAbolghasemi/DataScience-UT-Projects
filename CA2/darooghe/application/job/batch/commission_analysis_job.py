@@ -5,11 +5,7 @@ from typing import Dict, Optional
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
-from darooghe.domain.entity.commission import (
-    CommissionFlat,
-    CommissionTiered,
-    CommissionVolume,
-)
+from darooghe.domain.entity.commission import CommissionModel
 from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.time import JAVA_DATE_FORMAT_YEAR_MONTH
 from darooghe.infrastructure.data_processing.spark_config import Spark
@@ -112,33 +108,33 @@ class CommissionAnalysisJob:
 
         flat_rate = current_metrics.withColumn(
             "flat_rate_projection_commission",
-            F.col("current_total_amount") * CommissionFlat.RATE.value,
+            F.col("current_total_amount") * CommissionModel.Flat.RATE,
         )
 
         tiered_model = current_metrics.withColumn(
             "tiered_projection_commission",
             F.when(
                 F.col("current_total_amount")
-                <= CommissionTiered.Tier1.MAX_AMOUNT_THRESHOLD.value,
-                F.col("current_total_amount") * CommissionTiered.Tier1.RATE.value,
+                <= CommissionModel.Tiered.Tier1.MAX_AMOUNT_THRESHOLD,
+                F.col("current_total_amount") * CommissionModel.Tiered.Tier1.RATE,
             )
             .when(
                 F.col("current_total_amount")
-                <= CommissionTiered.Tier2.MAX_AMOUNT_THRESHOLD.value,
-                CommissionTiered.Tier2.BASE_COMMISSION.value
+                <= CommissionModel.Tiered.Tier2.MAX_AMOUNT_THRESHOLD,
+                CommissionModel.Tiered.Tier2.BASE_COMMISSION
                 + (
                     F.col("current_total_amount")
-                    - CommissionTiered.Tier1.MAX_AMOUNT_THRESHOLD.value
+                    - CommissionModel.Tiered.Tier1.MAX_AMOUNT_THRESHOLD
                 )
-                * CommissionTiered.Tier2.RATE.value,
+                * CommissionModel.Tiered.Tier2.RATE,
             )
             .otherwise(
-                CommissionTiered.Tier3.BASE_COMMISSION.value
+                CommissionModel.Tiered.Tier3.BASE_COMMISSION
                 + (
                     F.col("current_total_amount")
-                    - CommissionTiered.Tier2.MAX_AMOUNT_THRESHOLD.value
+                    - CommissionModel.Tiered.Tier2.MAX_AMOUNT_THRESHOLD
                 )
-                * CommissionTiered.Tier3.RATE.value
+                * CommissionModel.Tiered.Tier3.RATE
             ),
         )
 
@@ -147,15 +143,15 @@ class CommissionAnalysisJob:
             F.col("current_total_amount")
             * F.when(
                 F.col("current_total_amount")
-                < CommissionVolume.Small.MAX_AMOUNT_THRESHOLD.value,
-                CommissionVolume.Small.RATE.value,
+                < CommissionModel.Volume.Small.MAX_AMOUNT_THRESHOLD,
+                CommissionModel.Volume.Small.RATE,
             )
             .when(
                 F.col("current_total_amount")
-                < CommissionVolume.Medium.MAX_AMOUNT_THRESHOLD.value,
-                CommissionVolume.Medium.RATE.value,
+                < CommissionModel.Volume.Medium.MAX_AMOUNT_THRESHOLD,
+                CommissionModel.Volume.Medium.RATE,
             )
-            .otherwise(CommissionVolume.Large.RATE.value),
+            .otherwise(CommissionModel.Volume.Large.RATE),
         )
 
         simulations = (
