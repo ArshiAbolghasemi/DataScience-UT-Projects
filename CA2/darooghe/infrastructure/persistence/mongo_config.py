@@ -132,3 +132,12 @@ class Mongo:
             @classmethod
             def get_indexes(cls) -> List[IndexModel]:
                 return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class CommissionPerMerchantCategroy:
+            @classmethod
+            def get_name(cls) -> str:
+                return "commission_per_merhcant_category"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]
