@@ -8,7 +8,7 @@ from pyspark.sql import functions as F
 from darooghe.domain.entity import customer
 from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.time import TimeOfDay
-from darooghe.infrastructure.batch_processing.spark_config import Spark
+from darooghe.infrastructure.data_processing.spark_config import Spark
 from darooghe.infrastructure.persistence.mongo_config import Mongo
 
 
@@ -238,26 +238,12 @@ class TransactionPatternJob:
         )
 
 
-def _create_spark_session() -> SparkSession:
-    return (
-        SparkSession.Builder()
-        .appName(Spark.AppName.TRANSACTION_PATTERN_JOB)
-        .config("spark.master", Spark.Config.SPARK_MASTER)
-        .config("spark.mongodb.read.connection.uri", Mongo.Config.MONGO_URI)
-        .config("spark.mongodb.write.connection.uri", Mongo.Config.MONGO_URI)
-        .config("spark.driver.host", Spark.Config.DRIVER_HOST)
-        .config("spark.driver.bindAddress", Spark.Config.DRIVER_BIND_ADDRESS)
-        .config("spark.jars.packages", Spark.Config.JARS_PACKAGES)
-        .getOrCreate()
-    )
-
-
 def _main():
     configure_cli_log()
     spark = None
     try:
         logging.info("Starting Transaction Pattern Analysis Job")
-        spark = _create_spark_session()
+        spark = Spark.create_session()
         job = TransactionPatternJob(spark)
         job.run()
         logging.info("Job completed successfully")
