@@ -22,25 +22,16 @@ class TransactionPatternJob:
 
         transactions_df = self._load_transaction_data(start_date, end_date)
 
-        results = {}
-        results[Mongo.Collections.TransactionTemporalPatterns.get_name()] = (
-            self._analyze_transction_temporal_patterns(transactions_df)
+        results = (
+            {}
+            | self._analyze_transactions_per_time_of_day(transactions_df)
+            | self._analyze_merchant_peaks(transactions_df)
+            | self._analyze_customer_segments(transactions_df)
+            | self._compare_merchant_categories(transactions_df)
+            | self._analyze_transactions_per_time_of_day(transactions_df)
+            | self._analyze_spend_trend(transactions_df)
         )
-        results[Mongo.Collections.MerchantPeaks.get_name()] = (
-            self._analyze_merchant_peaks(transactions_df)
-        )
-        customer_segments = self._analyze_customer_segments(transactions_df)
-        results = results | customer_segments
-        merchant_categories_behavior = self._compare_merchant_categories(
-            transactions_df
-        )
-        results = results | merchant_categories_behavior
-        results[Mongo.Collections.TransactionPerTimeOfDay.get_name()] = (
-            self._analyze_transactions_per_time_of_day(transactions_df)
-        )
-        results[Mongo.Collections.WeeklySpendingTrend.get_name()] = (
-            self._analyze_spend_trend(transactions_df)
-        )
+
         for collection, result in results.items():
             self._save_result(result=result, collection=collection)
 
@@ -82,27 +73,42 @@ class TransactionPatternJob:
             )
         )
 
-    def _analyze_transction_temporal_patterns(self, df: DataFrame) -> DataFrame:
-        return (
-            df.groupBy("date")
-            .agg(
-                F.count("*").alias("transaction_count"),
-                F.sum("amount").alias("total_amount"),
-            )
-            .withColumn("created_at", F.lit(datetime.now(UTC)))
-            .orderBy("date")
+    def _save_result(self, result: DataFrame, collection: str):
+        (
+            result.write.format("mongodb")
+            .mode("append")
+            .option("database", Mongo.DB.DAROOGHE)
+            .option("collection", collection)
+            .save()
         )
 
-    def _analyze_merchant_peaks(self, df: DataFrame) -> DataFrame:
-        return (
-            df.groupBy("merchant_category", "date", "hour")
-            .agg(
-                F.count("*").alias("transaction_count"),
-                F.sum("amount").alias("total_amount"),
+    def _analyze_transction_temporal_patterns(
+        self, df: DataFrame
+    ) -> Dict[str, DataFrame]:
+        return {
+            Mongo.Collections.TransactionTemporalPatterns.get_name(): (
+                df.groupBy("date")
+                .agg(
+                    F.count("*").alias("transaction_count"),
+                    F.sum("amount").alias("total_amount"),
+                )
+                .withColumn("created_at", F.lit(datetime.now(UTC)))
+                .orderBy("date")
             )
-            .withColumn("created_at", F.lit(datetime.now(UTC)))
-            .orderBy("merchant_category", "date", F.desc("transaction_count"))
-        )
+        }
+
+    def _analyze_merchant_peaks(self, df: DataFrame) -> Dict[str, DataFrame]:
+        return {
+            Mongo.Collections.MerchantPeaks.get_name(): (
+                df.groupBy("merchant_category", "date", "hour")
+                .agg(
+                    F.count("*").alias("transaction_count"),
+                    F.sum("amount").alias("total_amount"),
+                )
+                .withColumn("created_at", F.lit(datetime.now(UTC)))
+                .orderBy("merchant_category", "date", F.desc("transaction_count"))
+            )
+        }
 
     def _analyze_customer_segments(self, df: DataFrame) -> Dict[str, DataFrame]:
         customer_metrics = (
@@ -196,46 +202,43 @@ class TransactionPatternJob:
             Mongo.Collections.MerchantCategoryTimeDist.get_name(): merchant_category_time_dist,
         }
 
-    def _analyze_transactions_per_time_of_day(self, df: DataFrame):
-        return (
-            df.groupBy("time_of_day")
-            .agg(
-                F.count("*").alias("transaction_count"),
-                F.sum("amount").alias("total_amount"),
-                F.avg("amount").alias("avg_amount"),
-                F.countDistinct("customer_id").alias("unique_customers"),
+    def _analyze_transactions_per_time_of_day(
+        self, df: DataFrame
+    ) -> Dict[str, DataFrame]:
+        return {
+            Mongo.Collections.TransactionPerTimeOfDay.get_name(): (
+                df.groupBy("time_of_day")
+                .agg(
+                    F.count("*").alias("transaction_count"),
+                    F.sum("amount").alias("total_amount"),
+                    F.avg("amount").alias("avg_amount"),
+                    F.countDistinct("customer_id").alias("unique_customers"),
+                )
+                .withColumn("created_at", F.lit(datetime.now(UTC)))
+                .orderBy(F.desc("transaction_count"))
             )
-            .withColumn("created_at", F.lit(datetime.now(UTC)))
-            .orderBy(F.desc("transaction_count"))
-        )
+        }
 
-    def _analyze_spend_trend(self, df: DataFrame) -> DataFrame:
+    def _analyze_spend_trend(self, df: DataFrame) -> Dict[str, DataFrame]:
         now = datetime.now(UTC)
-        return (
-            df.filter(
-                (F.col("timestamp") >= now - timedelta(days=365))
-                & (F.col("timestamp") <= now)
+        return {
+            Mongo.Collections.WeeklySpendingTrend: (
+                df.filter(
+                    (F.col("timestamp") >= now - timedelta(days=365))
+                    & (F.col("timestamp") <= now)
+                )
+                .withColumn("week", F.weekofyear("timestamp"))
+                .alias("week")
+                .groupBy("week")
+                .agg(
+                    F.count("*").alias("transaction_count"),
+                    F.sum("amount").alias("total_amount"),
+                    F.avg("amount").alias("avg_amount"),
+                )
+                .withColumn("created_at", F.lit(datetime.now(UTC)))
+                .orderBy("week")
             )
-            .withColumn("week", F.weekofyear("timestamp"))
-            .alias("week")
-            .groupBy("week")
-            .agg(
-                F.count("*").alias("transaction_count"),
-                F.sum("amount").alias("total_amount"),
-                F.avg("amount").alias("avg_amount"),
-            )
-            .withColumn("created_at", F.lit(datetime.now(UTC)))
-            .orderBy("week")
-        )
-
-    def _save_result(self, result: DataFrame, collection: str):
-        (
-            result.write.format("mongodb")
-            .mode("append")
-            .option("database", Mongo.DB.DAROOGHE)
-            .option("collection", collection)
-            .save()
-        )
+        }
 
 
 def _main():
@@ -243,7 +246,7 @@ def _main():
     spark = None
     try:
         logging.info("Starting Transaction Pattern Analysis Job")
-        spark = Spark.create_session()
+        spark = Spark.create_session(Spark.AppName.TRANSACTION_PATTERN_JOB)
         job = TransactionPatternJob(spark)
         job.run()
         logging.info("Job completed successfully")

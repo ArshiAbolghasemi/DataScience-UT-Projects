@@ -8,6 +8,7 @@ class Spark:
 
     class AppName:
         TRANSACTION_PATTERN_JOB = "TransactionPatternAnalysis"
+        COMMISSION_ANALYSIS = "commission_analysis"
 
     class Config:
         JARS_PACKAGES = os.getenv("SPARK_JARS_PACKAGES")
@@ -16,10 +17,10 @@ class Spark:
         DRIVER_BIND_ADDRESS = os.getenv("SPARK_DRIVER_BIND_ADDRESS")
 
     @classmethod
-    def create_session(cls) -> SparkSession:
+    def create_session(cls, app_name: str) -> SparkSession:
         return (
             SparkSession.Builder()
-            .appName(cls.AppName.TRANSACTION_PATTERN_JOB)
+            .appName(app_name)
             .config("spark.master", cls.Config.SPARK_MASTER)
             .config("spark.mongodb.read.connection.uri", Mongo.Config.MONGO_URI)
             .config("spark.mongodb.write.connection.uri", Mongo.Config.MONGO_URI)
