@@ -18,3 +18,6 @@ class TimeOfDay(Enum):
     @property
     def label(self):
         return self.value[2]
+
+
+JAVA_DATE_FORMAT_YEAR_MONTH = "yyyy-MM"

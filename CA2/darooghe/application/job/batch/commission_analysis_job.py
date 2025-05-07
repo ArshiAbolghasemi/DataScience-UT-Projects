@@ -1,11 +1,12 @@
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Optional
+from typing import Dict, Optional
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
 from darooghe.domain.util.logging import configure_cli_log
+from darooghe.domain.util.time import JAVA_DATE_FORMAT_YEAR_MONTH
 from darooghe.infrastructure.data_processing.spark_config import Spark
 from darooghe.infrastructure.persistence.mongo_config import Mongo
 
@@ -20,9 +21,10 @@ class CommissionAnalysisJob:
         start_date = end_date - timedelta(days=lookback_days)
         transaction_df = self._load_transaction_data(start_date, end_date)
 
-        results = {}
-        results[Mongo.Collections.CommissionPerMerchantCategroy.get_name()] = (
-            self._analyze_commission_per_merchant_category(transaction_df)
+        results = (
+            {} 
+            | self._analyze_commission_per_merchant_category(transaction_df)
+            | self._analyze_commission_trends(transaction_df)
         )
 
         for collection, result in results.items():
@@ -58,20 +60,43 @@ class CommissionAnalysisJob:
             .save()
         )
 
-    def _analyze_commission_per_merchant_category(self, df: DataFrame) -> DataFrame:
-        return (
-            df.groupBy("merchant_category")
-            .agg(
-                F.sum("amount").alias("total_amount"),
-                F.sum("commission_amount").alias("total_commission"),
-                F.avg("commission_amount").alias("avg_commission"),
-                (F.sum("commission_amount") / F.sum("amount")).alias(
-                    "commission_ratio"
-                ),
-                F.countDistinct("merchant_id").alias("unique_merchants"),
+    def _analyze_commission_per_merchant_category(
+        self, df: DataFrame
+    ) -> Dict[str, DataFrame]:
+        return {
+            Mongo.Collections.CommissionPerMerchantCategroy.get_name(): (
+                df.groupBy("merchant_category")
+                .agg(
+                    F.sum("amount").alias("total_amount"),
+                    F.sum("commission_amount").alias("total_commission"),
+                    F.avg("commission_amount").alias("avg_commission"),
+                    (F.sum("commission_amount") / F.sum("amount")).alias(
+                        "commission_ratio"
+                    ),
+                    F.countDistinct("merchant_id").alias("unique_merchants"),
+                )
+                .withColumn("created_at", F.lit(datetime.now(UTC)))
             )
-            .withColumn("created_at", F.lit(datetime.now(UTC)))
-        )
+        }
+
+    def _analyze_commission_trends(self, df: DataFrame) -> Dict[str, DataFrame]:
+        return {
+            Mongo.Collections.CommissionTrends.get_name(): (
+                df.withColumn(
+                    "month", F.date_format("timestamp", JAVA_DATE_FORMAT_YEAR_MONTH)
+                )
+                .groupBy("merchant_category", "month")
+                .agg(
+                    F.sum("amount").alias("total_amount"),
+                    F.sum("commission_amount").alias("total_commission"),
+                    (F.sum("commission_amount") / F.sum("amount")).alias(
+                        "commission_ratio"
+                    ),
+                )
+                .withColumn("created_at", F.lit(datetime.now(UTC)))
+                .orderBy("month")
+            )
+        }
 
 
 def _main():
@@ -79,7 +104,7 @@ def _main():
     spark = None
     try:
         logging.info("Starting Commission Analysis Job")
-        spark = Spark.create_session()
+        spark = Spark.create_session(Spark.AppName.COMMISSION_ANALYSIS)
         job = CommissionAnalysisJob(spark)
         job.run()
         logging.info("Job completed successfully")
