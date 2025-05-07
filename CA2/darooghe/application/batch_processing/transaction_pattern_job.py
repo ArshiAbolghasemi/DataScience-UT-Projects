@@ -21,29 +21,33 @@ class TransactionPatternJob:
         start_date = end_date - timedelta(days=lookback_days)
 
         transactions_df = self._load_and_preprocess_data(start_date, end_date)
-
+        results = {}
         transaction_temporal_patterns = self._analyze_transction_temporal_patterns(
             transactions_df
         )
-        self._save_result(
-            result=transaction_temporal_patterns,
-            collection=Mongo.Collections.TransactionTemporalPatterns.get_name(),
+        results[Mongo.Collections.TransactionTemporalPatterns.get_name()] = (
+            transaction_temporal_patterns
         )
 
         merchant_peaks = self._analyze_merchant_peaks(transactions_df)
-        self._save_result(
-            result=merchant_peaks, collection=Mongo.Collections.MerchantPeaks.get_name()
-        )
+        results[Mongo.Collections.MerchantPeaks.get_name()] = merchant_peaks
 
         customer_segments = self._analyze_customer_segments(transactions_df)
-        for collection, df in customer_segments.items():
-            self._save_result(result=df, collection=collection)
+        results = results | customer_segments
 
         merchant_categories_behavior = self._compare_merchant_categories(
             transactions_df
         )
-        for collection, df in merchant_categories_behavior.items():
-            self._save_result(result=df, collection=collection)
+        results = results | merchant_categories_behavior
+
+        transaction_per_time_of_day = self._analyze_transactions_per_time_of_day(
+            transactions_df
+        )
+        results[Mongo.Collections.TransactionPerTimeOfDay.get_name()] = (
+            transaction_per_time_of_day
+        )
+        for collection, result in results.items():
+            self._save_result(result=result, collection=collection)
 
     def _load_and_preprocess_data(
         self, start_date: datetime, end_date: datetime
@@ -139,13 +143,18 @@ class TransactionPatternJob:
                 )
                 .otherwise(customer.Segment.REGULAR),
             )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
         )
 
-        customer_segment_stats = customer_metrics.groupBy("segment").agg(
-            F.count("*").alias("customer_count"),
-            F.avg("transaction_count").alias("avg_transactions"),
-            F.avg("total_spend").alias("avg_spend"),
-            F.sum("total_spend").alias("total_spend"),
+        customer_segment_stats = (
+            customer_metrics.groupBy("segment")
+            .agg(
+                F.count("*").alias("customer_count"),
+                F.avg("transaction_count").alias("avg_transactions"),
+                F.avg("total_spend").alias("avg_spend"),
+                F.sum("total_spend").alias("total_spend"),
+            )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
         )
 
         merchant_category_customer_segments = (
@@ -153,7 +162,7 @@ class TransactionPatternJob:
             .groupBy("merchant_category", "segment")
             .agg(F.count("*").alias("transaction_count"))
             .orderBy("merchant_category", "segment")
-        )
+        ).withColumn("created_at", F.lit(datetime.now(UTC)))
 
         return {
             Mongo.Collections.CustomerMetrics.get_name(): customer_metrics,
@@ -173,6 +182,7 @@ class TransactionPatternJob:
                 F.countDistinct("customer_id").alias("unique_customers"),
                 F.expr("percentile(amount, 0.5)").alias("median_amount"),
             )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
             .orderBy(F.desc("total_amount"))
         )
 
@@ -182,6 +192,7 @@ class TransactionPatternJob:
                 F.count("*").alias("transaction_count"),
                 F.sum("amount").alias("total_amount"),
             )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
             .orderBy("merchant_category", "time_of_day")
         )
 
@@ -189,6 +200,19 @@ class TransactionPatternJob:
             Mongo.Collections.MerchantCategoryStats.get_name(): merchant_category_stats,
             Mongo.Collections.MerchantCategoryTimeDist.get_name(): merchant_category_time_dist,
         }
+
+    def _analyze_transactions_per_time_of_day(self, df: DataFrame):
+        return (
+            df.groupBy("time_of_day")
+            .agg(
+                F.count("*").alias("transaction_count"),
+                F.sum("amount").alias("total_amount"),
+                F.avg("amount").alias("avg_amount"),
+                F.countDistinct("customer_id").alias("unique_customers"),
+            )
+            .withColumn("created_at", F.lit(datetime.now(UTC)))
+            .orderBy(F.desc("transaction_count"))
+        )
 
     def _save_result(self, result: DataFrame, collection: str):
         (

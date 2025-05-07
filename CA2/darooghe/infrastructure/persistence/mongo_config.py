@@ -114,3 +114,12 @@ class Mongo:
             @classmethod
             def get_indexes(cls) -> List[IndexModel]:
                 return [Mongo.Collections._get_index_created_at_ttl()]
+
+        class TransactionPerTimeOfDay:
+            @classmethod
+            def get_name(cls) -> str:
+                return "transaction_per_time_of_day"
+
+            @classmethod
+            def get_indexes(cls) -> List[IndexModel]:
+                return [Mongo.Collections._get_index_created_at_ttl()]
