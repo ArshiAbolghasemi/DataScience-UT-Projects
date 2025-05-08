@@ -68,7 +68,7 @@ class Transaction:
     amount: int
     location: Location
     device_info: Optional[Device]
-    status: str
+    status: Status
     commission_type: CommissionType
     commission_amount: int
     vat_amount: int
