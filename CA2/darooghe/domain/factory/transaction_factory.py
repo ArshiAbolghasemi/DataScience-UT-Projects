@@ -83,7 +83,6 @@ class TransactionFactory:
             risk_level=risk_level,
             failure_reason=failure_reason,
             customer_type=customer_type,
-            created_at=datetime.now(UTC),
         )
 
     def create_historical_transactions(

@@ -76,7 +76,6 @@ class Transaction:
     customer_type: CustomerType
     risk_level: RiskLevel
     failure_reason: Optional[FailureReason]
-    created_at: datetime
 
     def validate(self) -> Dict[ErrorCode, str]:
         errors = {}
