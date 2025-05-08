@@ -9,6 +9,7 @@ class Kafka:
     class Topics:
         DAROOGHE_TRANSACTIONS = "darooghe.transactions"
         DAROOGHE_ERROR_LOGS = "darooghe.error_logs"
+        DAROOGHE_FRAUD_ALERTS = "darooghe.fraud_alerts"
 
     class Groups:
         DAROOGHE_TRANSACTIONS_CONSUMER = "darooghe-transactions-consumer"
