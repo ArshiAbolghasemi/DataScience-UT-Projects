@@ -1,6 +1,3 @@
-from darooghe.domain.util.time import Seconds
-
-
 class Fraud:
 
     class Velocity:
