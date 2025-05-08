@@ -128,7 +128,8 @@ services:
       SPARK_LOCAL_IP: darooghe-app
       SPARK_DRIVER_HOST: darooghe-app
       SPARK_DRIVER_BIND_ADDRESS: 0.0.0.0
-      SPARK_JARS_PACKAGES: org.mongodb.spark:mongo-spark-connector_2.12:10.4.0
+      SPARK_MONGO_JARS_PACKAGES: org.mongodb.spark:mongo-spark-connector_2.12:10.4.0
+      SPARK_KAFKA_JARS_PACKAGES: org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.5
     command: tail -f /dev/null
     networks:
       - darooghe-net
