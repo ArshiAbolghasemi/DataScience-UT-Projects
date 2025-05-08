@@ -83,6 +83,7 @@ class TransactionFactory:
             risk_level=risk_level,
             failure_reason=failure_reason,
             customer_type=customer_type,
+            created_at=datetime.now(UTC),
         )
 
     def create_historical_transactions(
@@ -91,9 +92,12 @@ class TransactionFactory:
         transactions = []
 
         for _ in range(count):
-            event_time = self.__faker.date_time_between(
-                start_date=f"-{days_back}d",
-                end_date="now",
+            event_time = datetime.fromtimestamp(
+                self.__faker.date_time_between(
+                    start_date=f"-{days_back}d",
+                    end_date="now",
+                ).timestamp(),
+                UTC,
             )
             transaction = self.create_transaction(timestamp=event_time)
             transactions.append(transaction)
