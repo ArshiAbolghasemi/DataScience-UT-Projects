@@ -21,3 +21,8 @@ class TimeOfDay(Enum):
 
 
 JAVA_DATE_FORMAT_YEAR_MONTH = "yyyy-MM"
+
+
+class Seconds:
+
+    MINUTE = 60
