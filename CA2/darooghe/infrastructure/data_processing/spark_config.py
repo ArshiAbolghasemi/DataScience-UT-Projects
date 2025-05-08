@@ -17,7 +17,7 @@ class Spark:
         DRIVER_BIND_ADDRESS = os.getenv("SPARK_DRIVER_BIND_ADDRESS")
 
     @classmethod
-    def create_session(cls, app_name: str) -> SparkSession:
+    def create_mongo_session(cls, app_name: str) -> SparkSession:
         return (
             SparkSession.Builder()
             .appName(app_name)

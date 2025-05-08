@@ -184,7 +184,7 @@ def _main():
     spark = None
     try:
         logging.info("Starting Commission Analysis Job")
-        spark = Spark.create_session(Spark.AppName.COMMISSION_ANALYSIS)
+        spark = Spark.create_mongo_session(Spark.AppName.COMMISSION_ANALYSIS)
         job = CommissionAnalysisJob(spark)
         job.run()
         logging.info("Job completed successfully")

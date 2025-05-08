@@ -246,7 +246,7 @@ def _main():
     spark = None
     try:
         logging.info("Starting Transaction Pattern Analysis Job")
-        spark = Spark.create_session(Spark.AppName.TRANSACTION_PATTERN_JOB)
+        spark = Spark.create_mongo_session(Spark.AppName.TRANSACTION_PATTERN_JOB)
         job = TransactionPatternJob(spark)
         job.run()
         logging.info("Job completed successfully")
