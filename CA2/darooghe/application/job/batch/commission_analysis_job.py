@@ -9,6 +9,9 @@ from darooghe.domain.entity.commission import CommissionModel
 from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.time import JAVA_DATE_FORMAT_YEAR_MONTH
 from darooghe.infrastructure.data_processing.spark_config import Spark
+from darooghe.infrastructure.data_processing.spark_session_manager import (
+    create_mongo_session,
+)
 from darooghe.infrastructure.persistence.mongo_config import Mongo
 
 
@@ -184,7 +187,7 @@ def _main():
     spark = None
     try:
         logging.info("Starting Commission Analysis Job")
-        spark = Spark.create_mongo_session(Spark.AppName.COMMISSION_ANALYSIS)
+        spark = create_mongo_session(Spark.AppName.COMMISSION_ANALYSIS)
         job = CommissionAnalysisJob(spark)
         job.run()
         logging.info("Job completed successfully")

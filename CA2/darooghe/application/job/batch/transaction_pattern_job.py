@@ -9,6 +9,9 @@ from darooghe.domain.entity import customer
 from darooghe.domain.util.logging import configure_cli_log
 from darooghe.domain.util.time import TimeOfDay
 from darooghe.infrastructure.data_processing.spark_config import Spark
+from darooghe.infrastructure.data_processing.spark_session_manager import (
+    create_mongo_session,
+)
 from darooghe.infrastructure.persistence.mongo_config import Mongo
 
 
@@ -246,7 +249,7 @@ def _main():
     spark = None
     try:
         logging.info("Starting Transaction Pattern Analysis Job")
-        spark = Spark.create_mongo_session(Spark.AppName.TRANSACTION_PATTERN_JOB)
+        spark = create_mongo_session(Spark.AppName.TRANSACTION_PATTERN_JOB)
         job = TransactionPatternJob(spark)
         job.run()
         logging.info("Job completed successfully")
