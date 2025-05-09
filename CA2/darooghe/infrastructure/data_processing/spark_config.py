@@ -25,5 +25,7 @@ class Spark:
             BASE_DIR = "/tmp/checkpoints"
             FRAUD_DETECTION_DIR = BASE_DIR + "/fraud_detection"
             COMMISSION_BY_TYPE_DIR = BASE_DIR + "/commission_by_type"
-            COMMISSION_RATIO_BY_MERCHANT_CATEGORY = BASE_DIR + "/commission_ratio_by_merchant_category"
+            COMMISSION_RATIO_BY_MERCHANT_CATEGORY = (
+                BASE_DIR + "/commission_ratio_by_merchant_category"
+            )
             TOP_MERCHANT_COMMISSION = BASE_DIR + "/top-merchant-commission"
