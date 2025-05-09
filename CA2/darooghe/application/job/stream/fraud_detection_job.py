@@ -27,7 +27,7 @@ class FraudDetectionJob:
 
     def run(self) -> None:
         logging.info("Starting Kafka stream for topic")
-        transactions = self._load_transactino_streams()
+        transactions = self._load_transaction_streams()
 
         logging.info("Starting fraud detection process...")
         frauds = self.fraud_detection_service.execute(transactions)
@@ -37,7 +37,7 @@ class FraudDetectionJob:
         )
         self._write_frauds_to_kafka_topic(frauds)
 
-    def _load_transactino_streams(self) -> DataFrame:
+    def _load_transaction_streams(self) -> DataFrame:
         stream_df = read_from_kafka_stream(
             spark=self.spark,
             kafka_brokers=[Kafka.Config.KAFKA_BROKER],
