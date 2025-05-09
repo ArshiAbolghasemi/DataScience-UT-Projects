@@ -2,6 +2,7 @@ from typing import List
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
+from pyspark.sql.streaming.query import StreamingQuery
 
 
 def read_from_kafka_stream(
@@ -23,8 +24,8 @@ def write_stream_to_kafks(
     kafka_topic: str,
     checkpoint_location: str,
     outout_mode: str = "append",
-) -> None:
-    (
+) -> StreamingQuery:
+    return (
         df.select(F.to_json(F.struct("*")).alias("value"))
         .writeStream.format("kafka")
         .option("kafka.bootstrap.servers", ",".join(kafka_brokers))
