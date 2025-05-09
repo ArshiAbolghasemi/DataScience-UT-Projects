@@ -18,6 +18,5 @@ def create_spark_session(app_name: str) -> SparkSession:
             "spark.streaming.kafka.maxRatePerPartition",
             Spark.Config.STREAMING_KAFKA_MAX_RATE_PER_PARTITION,
         )
-        .config("spark.sql.shuffle.partitions", Spark.Config.SPARK_SQL_SUFFLE_PARTITION)
         .getOrCreate()
     )

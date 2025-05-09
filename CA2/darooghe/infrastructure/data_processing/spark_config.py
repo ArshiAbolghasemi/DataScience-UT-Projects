@@ -19,7 +19,6 @@ class Spark:
         STREAMING_KAFKA_MAX_RATE_PER_PARTITION = os.getenv(
             "STREAMING_KAFKA_MAX_RATE_PER_PARTITION", 100
         )
-        SPARK_SQL_SUFFLE_PARTITION = os.getenv("SPARK_SQL_SUFFLE_PARTITION", 1)
 
         class CheckPoints:
             FRAUD_DETECTION_DIR = "/tmp/checkpoints/fraud_detection"
