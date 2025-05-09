@@ -29,3 +29,6 @@ class CommissionModel:
 
         class Large:
             RATE = 0.015
+
+
+STATISTICAL_SIGNIFANCE_COMMISSION_RATION_PER_MERCHANT_CATEGORY_TRANSACTION_COUNT = 10
