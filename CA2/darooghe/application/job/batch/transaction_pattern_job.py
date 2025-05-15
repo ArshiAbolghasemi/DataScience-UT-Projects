@@ -27,7 +27,7 @@ class TransactionPatternJob:
 
         results = (
             {}
-            | self._analyze_transactions_per_time_of_day(transactions_df)
+            | self._analyze_transction_temporal_patterns(transactions_df)
             | self._analyze_merchant_peaks(transactions_df)
             | self._analyze_customer_segments(transactions_df)
             | self._compare_merchant_categories(transactions_df)
