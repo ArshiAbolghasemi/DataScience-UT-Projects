@@ -23,6 +23,7 @@ services:
       - kafka_data:/opt/kafka/data
     networks:
       - darooghe-net
+
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
     container_name: ut-ds-ca2-kafdrop
@@ -35,6 +36,7 @@ services:
       - kafka
     networks:
       - darooghe-net
+
   mongodb:
     image: mongo:latest
     container_name: ut-ds-ca2-mongodb
@@ -47,6 +49,7 @@ services:
       - mongodb_data:/data/db
     networks:
       - darooghe-net
+
   prometheus:
     image: prom/prometheus:latest
     container_name: ut-ds-ca2-prometheus
@@ -57,6 +60,7 @@ services:
       - mongodb
     networks:
       - darooghe-net
+
   grafana:
     image: grafana/grafana:latest
     container_name: ut-ds-ca2-grafana
@@ -72,6 +76,7 @@ services:
       - prometheus
     networks:
       - darooghe-net
+
   spark-master:
     image: bitnami/spark:latest
     container_name: ut-ds-ca2-spark-master
@@ -86,6 +91,7 @@ services:
       - ./jars:/app/jars
     networks:
       - darooghe-net
+
   spark-worker-1:
     image: bitnami/spark:latest
     container_name: ut-ds-ca2-spark-worker-1
@@ -103,6 +109,7 @@ services:
       - ./jars:/app/jars
     networks:
       - darooghe-net
+
   darooghe-app:
     build:
       context: .
@@ -133,6 +140,7 @@ services:
     command: tail -f /dev/null
     networks:
       - darooghe-net
+
 volumes:
   kafka_data:
   mongodb_data:
