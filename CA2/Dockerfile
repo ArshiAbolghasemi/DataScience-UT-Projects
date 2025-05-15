@@ -23,5 +23,4 @@ RUN pip install -e .
 
 RUN find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
 
-EXPOSE 4040
 CMD ["python", "main.py"]
