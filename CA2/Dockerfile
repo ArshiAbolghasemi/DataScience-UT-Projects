@@ -21,5 +21,7 @@ RUN pip install -r requirements.txt
 COPY . .
 RUN pip install -e .
 
+RUN find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
+
 EXPOSE 4040
 CMD ["python", "main.py"]
