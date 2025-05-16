@@ -15,11 +15,12 @@ ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-${TARGETARCH}
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY pyproject.toml .
+RUN mkdir -p darooghe
+RUN pip install --upgrade pip && \
+    pip install .
 
 COPY . .
-RUN pip install -e .
 
 RUN find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
 

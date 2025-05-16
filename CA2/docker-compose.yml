@@ -121,7 +121,7 @@ services:
     volumes:
       - ./darooghe:/app/darooghe
       - ./main.py:/app/main.py
-      - ./setup.py:/app/setup.py
+      - ./pyproject.toml:/app/pyproject.toml
       - ./jars:/app/jars
     depends_on:
       - kafka
