@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from darooghe.domain.entity.device import OS, Device
 from darooghe.domain.entity.error import ErrorCode
@@ -16,6 +16,36 @@ class MerchantCategory(str, Enum):
     ENTERTAINMENT = "entertainment"
     TRANSPORTATION = "transportation"
     GOVERNMENT = "government"
+
+
+@dataclass
+class MerchantHours:
+    merchant_category: MerchantCategory
+    opening_hour: int
+    closing_hour: int
+
+
+merchant_business_hours: List[MerchantHours] = [
+    MerchantHours(
+        merchant_category=MerchantCategory.RETAIL, opening_hour=9, closing_hour=21
+    ),
+    MerchantHours(
+        merchant_category=MerchantCategory.FOOD_SERVICE, opening_hour=7, closing_hour=23
+    ),
+    MerchantHours(
+        merchant_category=MerchantCategory.ENTERTAINMENT,
+        opening_hour=14,
+        closing_hour=23,
+    ),
+    MerchantHours(
+        merchant_category=MerchantCategory.TRANSPORTATION,
+        opening_hour=4,
+        closing_hour=22,
+    ),
+    MerchantHours(
+        merchant_category=MerchantCategory.GOVERNMENT, opening_hour=9, closing_hour=17
+    ),
+]
 
 
 class PaymentMethod(str, Enum):

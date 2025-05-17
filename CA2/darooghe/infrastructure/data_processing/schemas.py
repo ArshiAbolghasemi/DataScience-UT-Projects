@@ -1,6 +1,7 @@
 from pyspark.sql.types import (
     DecimalType,
     DoubleType,
+    IntegerType,
     StringType,
     StructField,
     StructType,
@@ -41,5 +42,13 @@ transaction_schema = StructType(
         StructField("customer_type", StringType(), False),
         StructField("risk_level", StringType(), False),
         StructField("failure_reason", StringType()),
+    ]
+)
+
+merchant_hours_schema = StructType(
+    [
+        StructField("merchant_category", StringType(), False),
+        StructField("opening_hour", IntegerType(), False),
+        StructField("closing_hour", IntegerType(), False),
     ]
 )
