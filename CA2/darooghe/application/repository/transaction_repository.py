@@ -1,4 +1,4 @@
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
 from darooghe.infrastructure.persistence.mongo_config import Mongo
@@ -6,7 +6,7 @@ from darooghe.infrastructure.persistence.mongo_config import Mongo
 
 class TransactionRepository:
 
-    def __init__(self, spark) -> None:
+    def __init__(self, spark: SparkSession) -> None:
         self.spark = spark
 
     def get_customer_average_amount(self) -> DataFrame:
