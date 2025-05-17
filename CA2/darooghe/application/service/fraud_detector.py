@@ -28,10 +28,11 @@ class FraudDetectorService:
         amount_anomaly_fraud = self._detect_amount_anomaly(transaction_df)
         outside_hours_fraud = self._detect_outside_business_hours(transaction_df)
 
-        return (velocity_fraud
-                .unionByName(geo_fraud)
-                .unionByName(amount_anomaly_fraud)
-                .unionByName(outside_hours_fraud))
+        return (
+            velocity_fraud.unionByName(geo_fraud)
+            .unionByName(amount_anomaly_fraud)
+            .unionByName(outside_hours_fraud)
+        )
 
     def _get_fraud_alert_colums(self) -> List[Column]:
         return [
@@ -215,11 +216,9 @@ class FraudDetectorService:
         merchant_hours = self.merchant_repo.get_merchant_business_hours()
 
         windowed_df = (
-            transaction_df
-            .withWatermark("timestamp", "6 hours")
+            transaction_df.withWatermark("timestamp", "6 hours")
             .groupBy(
-                F.window(F.col("timestamp"), "30 minutes"),
-                F.col("merchant_category")
+                F.window(F.col("timestamp"), "30 minutes"), F.col("merchant_category")
             )
             .agg(
                 F.collect_list(
@@ -227,7 +226,7 @@ class FraudDetectorService:
                         "transaction_id",
                         "timestamp",
                         "merchant_category",
-                        "customer_id"
+                        "customer_id",
                     )
                 ).alias("transactions")
             )
@@ -236,14 +235,8 @@ class FraudDetectorService:
         )
 
         return (
-            windowed_df.join(
-                merchant_hours,
-                "merchant_category",
-                "inner"
-            )
-            .withColumn(
-                "hour_of_day", F.hour(F.col("timestamp"))
-            )
+            windowed_df.join(merchant_hours, "merchant_category", "inner")
+            .withColumn("hour_of_day", F.hour(F.col("timestamp")))
             .filter(
                 (F.col("hour_of_day") < F.col("opening_hour"))
                 | (F.col("hour_of_day") >= F.col("closing_hour"))
