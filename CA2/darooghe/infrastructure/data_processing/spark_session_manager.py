@@ -18,5 +18,6 @@ def create_spark_session(app_name: str) -> SparkSession:
             "spark.streaming.kafka.maxRatePerPartition",
             Spark.Config.STREAMING_KAFKA_MAX_RATE_PER_PARTITION,
         )
+        .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", True)
         .getOrCreate()
     )
