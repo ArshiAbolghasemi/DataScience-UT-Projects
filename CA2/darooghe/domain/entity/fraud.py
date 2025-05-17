@@ -15,3 +15,7 @@ class Fraud:
         MINIMUM_TRANSACTION_COUNT = 3
         LABEL = "amount_anomaly"
         DESCRIPTION = f"Amount >{AMOUNT_ANOMALY_THRESHOLD_RATIO}x customer average"
+
+    class MerchantOutsideHour:
+        LABEL = "MERCHANT_OUTSIDE_HOURS"
+        DESCRIPTION = "Transaction occurred outside merchant's normal business hours"

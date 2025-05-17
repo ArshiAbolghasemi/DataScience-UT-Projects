@@ -1,7 +1,8 @@
-from py4j.java_gateway import logging
+import logging
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
+from darooghe.application.repository.merchant_repository import MerchantRepository
 from darooghe.application.repository.transaction_repository import TransactionRepository
 from darooghe.application.service.fraud_detector import FraudDetectorService
 from darooghe.domain.util.logging import configure_cli_log
@@ -69,7 +70,8 @@ def _main():
         logging.info("Starting Fraud Detection Job...")
         spark = create_spark_session(Spark.AppName.FRAUD_DETECTION_SYSTEM)
         transaction_repo = TransactionRepository(spark)
-        fraud_detection_service = FraudDetectorService(transaction_repo)
+        merchant_repo = MerchantRepository(spark)
+        fraud_detection_service = FraudDetectorService(transaction_repo, merchant_repo)
         logging.info("Spark session for Fraud Detection Job created successfully")
         job = FraudDetectionJob(spark, fraud_detection_service)
         job.run()

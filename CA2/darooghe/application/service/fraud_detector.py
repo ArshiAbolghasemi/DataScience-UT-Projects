@@ -3,6 +3,7 @@ from typing import List
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as F
 
+from darooghe.application.repository.merchant_repository import MerchantRepository
 from darooghe.application.repository.transaction_repository import TransactionRepository
 from darooghe.domain.entity.fraud import Fraud
 
@@ -14,16 +15,23 @@ class FraudDetectorService:
     _METADATA_COL = "metadata"
     _CUSTOMER_ID_COL = "customer_id"
 
-    def __init__(self, transaction_repo: TransactionRepository) -> None:
+    def __init__(
+        self, transaction_repo: TransactionRepository, merchant_repo: MerchantRepository
+    ) -> None:
         self.transaction_repo = transaction_repo
+        self.merchant_repo = merchant_repo
 
     def execute(self, transaction_df: DataFrame) -> DataFrame:
 
         velocity_fraud = self._detect_velocity_fraud(transaction_df)
         geo_fraud = self._detect_geo_fraud(transaction_df)
         amount_anomaly_fraud = self._detect_amount_anomaly(transaction_df)
+        outside_hours_fraud = self._detect_outside_business_hours(transaction_df)
 
-        return velocity_fraud.unionByName(geo_fraud).unionByName(amount_anomaly_fraud)
+        return (velocity_fraud
+                .unionByName(geo_fraud)
+                .unionByName(amount_anomaly_fraud)
+                .unionByName(outside_hours_fraud))
 
     def _get_fraud_alert_colums(self) -> List[Column]:
         return [
@@ -198,6 +206,65 @@ class FraudDetectorService:
                     F.col("avg_amount").cast("string"),
                     F.lit("timestamp"),
                     F.col("timestamp").cast("string"),
+                ),
+            )
+            .select(self._get_fraud_alert_colums())
+        )
+
+    def _detect_outside_business_hours(self, transaction_df: DataFrame) -> DataFrame:
+        merchant_hours = self.merchant_repo.get_merchant_business_hours()
+
+        windowed_df = (
+            transaction_df
+            .withWatermark("timestamp", "6 hours")
+            .groupBy(
+                F.window(F.col("timestamp"), "30 minutes"),
+                F.col("merchant_category")
+            )
+            .agg(
+                F.collect_list(
+                    F.struct(
+                        "transaction_id",
+                        "timestamp",
+                        "merchant_category",
+                        "customer_id"
+                    )
+                ).alias("transactions")
+            )
+            .select(F.explode("transactions").alias("transaction"))
+            .select("transaction.*")
+        )
+
+        return (
+            windowed_df.join(
+                merchant_hours,
+                "merchant_category",
+                "inner"
+            )
+            .withColumn(
+                "hour_of_day", F.hour(F.col("timestamp"))
+            )
+            .filter(
+                (F.col("hour_of_day") < F.col("opening_hour"))
+                | (F.col("hour_of_day") >= F.col("closing_hour"))
+            )
+            .withColumn(self._FRAUD_TYPE_COL, F.lit(Fraud.MerchantOutsideHour.LABEL))
+            .withColumn(
+                self._RULE_DETAILS_COL, F.lit(Fraud.MerchantOutsideHour.DESCRIPTION)
+            )
+            .withColumn(
+                self._METADATA_COL,
+                F.create_map(
+                    F.lit("transaction_hour"),
+                    F.col("timestamp").cast("string"),
+                    F.lit("merchant_opening_hour"),
+                    F.col("opening_hour").cast("string"),
+                    F.lit("merchant_closing_hour"),
+                    F.col("closing_hour").cast("string"),
+                    F.lit("merchant_category"),
+                    F.col("merchant_category").cast("string"),
+                    F.lit("transaction_id"),
+                    F.col("transaction_id").cast("string"),
                 ),
             )
             .select(self._get_fraud_alert_colums())
