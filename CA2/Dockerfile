@@ -22,6 +22,6 @@ RUN pip install --upgrade pip && \
 
 COPY . .
 
-RUN find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
+RUN find /app/scripts/ -type f -name "*.sh" -exec chmod +x {} \;
 
-CMD ["python", "main.py"]
+CMD []
