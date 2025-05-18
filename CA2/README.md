@@ -1,3 +1,4 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ArshiAbolghasemi/DataScience-UT-Projects)
 # Darooghe - Payment Processing Pipeline
 
 Darooghe is a sophisticated payment processing and analysis system designed to handle transaction data flows, detect fraud, analyze commission structures, and provide insights into payment patterns.
