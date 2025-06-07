@@ -51,6 +51,6 @@ Flower classification has applications in botanical research, gardening apps, an
 ## Task 3: Recurrent Neural Network (Bitcoin Price Prediction)
 
 ### Project Overview
-This task focuses on time series forecasting using Recurrent Neural Networks (RNNs) to predict Bitcoin prices. Students work with financial data to understand temporal dependencies and sequential modeling. The project includes feature engineering from OHLCV data and explores the impact of different sequence lengths on model performance
+This task focuses on time series forecasting using Recurrent Neural Networks (RNNs) to predict Bitcoin prices. We work with financial data to understand temporal dependencies and sequential modeling. The project includes feature engineering from OHLCV data and explores the impact of different sequence lengths on model performance
 
 **File:** `rnn/forecast_bitcoin_price.ipynb`
