@@ -1,5 +1,3 @@
-# Advanced Data Science Project
-
 ## Introduction
 
 This project explores advanced topics in modern data science through hands-on tasks that reflect real-world challenges. Spanning multiple domains—including natural language processing, computer vision, and semi-supervised learning—the goal is to build a deeper understanding of both traditional machine learning techniques and the capabilities of foundation models such as large language models (LLMs).
@@ -57,18 +55,11 @@ Establish baseline performance using only labeled data with two modeling paradig
 
 **Classification Paradigm**
 - Treat each score (1-10) as distinct categorical class
-- Train classifiers (Logistic Regression, Random Forest, SVM)
+- Train classifiers (Logistic Regression, Random Forest, SVM, Ordinal Logistic Regression)
 
 **Regression Paradigm**
 - Treat score as continuous numerical value
 - Train regressors (Linear Regression, SVR, Random Forest)
-
-**Implementation Requirements:**
-- Data split: 80% training, 10% validation, 10% testing
-- Evaluation metrics:
-  - Classification: Accuracy, Precision, Recall, F1-score, Confusion Matrix
-  - Regression: MAE, MSE, RMSE, R²
-- Comparative analysis to select best-performing model
 
 #### 3. Semi-Supervised Learning (SSL) Strategies
 Leverage the large pool of unlabeled data to improve model performance.
@@ -76,12 +67,6 @@ Leverage the large pool of unlabeled data to improve model performance.
 **3.1 Pseudo-Labeling**
 - Iterative SSL approach using high-confidence predictions
 - Key concepts: confidence threshold, iterative refinement, confirmation bias risk
-- Implementation steps:
-  1. Train baseline model on labeled data
-  2. Predict scores for unlabeled data
-  3. Select high-confidence predictions as pseudo-labels
-  4. Retrain on expanded dataset
-  5. Evaluate and potentially iterate
 
 **3.2 Active Learning**
 - Strategic selection of most informative samples for annotation
@@ -89,9 +74,3 @@ Leverage the large pool of unlabeled data to improve model performance.
   - Least Confidence Sampling
   - Margin Sampling
   - Entropy-Based Sampling
-- Implementation:
-  1. Start with small labeled set
-  2. Compute uncertainty scores for unlabeled samples
-  3. Select top-k most uncertain samples
-  4. Manually assign scores (simulated human annotation)
-  5. Retrain and evaluate iteratively
