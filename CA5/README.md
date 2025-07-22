@@ -48,3 +48,22 @@ The SWAG (Situations With Adversarial Generations) dataset contains over 113,000
 - **Labels**: Correct answer indices for evaluation
 
 The dataset is designed to evaluate contextual and commonsense reasoning abilities, making it ideal for testing LLM performance on complex inference tasks.
+
+## Task 4: Football Image Segmentation
+### Overview
+Image segmentation is one of the most classic and extensively studied tasks in computer
+vision, with a wide range of applications—from segmenting tumors in medical images to
+identifying and separating different elements of a road scene in autonomous driving, such as
+lanes, vehicles, pedestrians, and traffic signs. Despite this, image segmentation tasks often
+face substantial challenges related to data. One of the primary issues is the need for
+high-quality, pixel-level annotations, which are both time-consuming and expensive to
+produce—especially in domains like medical imaging, where expert knowledge is required. To
+address these challenges, unsupervised methods have been deployed to automatically
+generate segmentation masks required for training these data. One such method is
+clustering, which groups pixels based on their features—such as color, intensity, or spatial
+information— into different segments. Although this might be a complex problem in cluttered
+images it is possible for some image datasets.
+
+### Dataset Description
+In this section you are going to create segmentation masks for players from the [football player segmentation](https://www.kaggle.com/datasets/ihelon/football-player-segmentation) dataset.
+
