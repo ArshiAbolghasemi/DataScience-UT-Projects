@@ -65,3 +65,30 @@ This repository contains all projects for Data Science course in UT - Spring 202
    - Custom feature engineering for profit/loss indicators
    - Experiments with different sequence lengths (30, 60, 90 days)
    - LSTM implementation for capturing long-term dependencies
+
+### [CA5: Advanced Data Science Tasks](CA5/)
+
+1. **Video Game Reviews – Semi-Supervised Score Prediction**
+
+   * Predicts review scores from limited labeled and large unlabeled text data
+   * Explores semi-supervised and active learning methods
+   * Addresses challenges of scarce labeled data in user-generated content
+
+2. **Semantic Search – Persian Q\&A Retrieval**
+
+   * Builds a semantic search system using embeddings and vector databases
+   * Focuses on Persian-language questions and answers from NiniSite forum
+   * Implements ranking and reranking to improve answer relevance
+
+3. **LLM for Multiple Choice Questions – SWAG Dataset**
+
+   * Uses large language models for complex multiple-choice reasoning
+   * Explores in-context learning, fine-tuning, and prompt engineering
+   * Tests models on contextual and commonsense inference tasks
+
+4. **Football Image Segmentation – Unsupervised Clustering**
+
+   * Applies unsupervised pixel clustering for segmenting football players
+   * Addresses the challenge of expensive pixel-level annotations
+   * Evaluates segmentation quality with IoU and Dice coefficient metrics
+   * Uses the Football Player Segmentation dataset from Kaggle
